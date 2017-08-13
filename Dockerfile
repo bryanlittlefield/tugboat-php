@@ -103,9 +103,9 @@ RUN chmod 600 /etc/apache2/ssl/*
 # Configure Apache/PHP
 # ============================
 RUN rm /etc/apache2/sites-enabled/*
-ADD ./config/apache2/vhost.conf /etc/apache2/sites-available/default.conf
-ADD ./config/apache2/vhost-ssl.conf /etc/apache2/sites-available/default-ssl.conf
-ADD ./config/php/php.ini /usr/local/etc/php/
+ADD config/apache2/vhost.conf /etc/apache2/sites-available/default.conf
+ADD config/apache2/vhost-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+ADD config/php/php.ini /usr/local/etc/php/
 
 RUN a2enmod rewrite
 RUN a2enmod ssl
@@ -122,7 +122,7 @@ RUN a2ensite default
 # ============================
 # CONFIG OPENSSH / START SERVICE
 # ============================
-COPY ./config/ssh/sshd_config /etc/ssh/sshd_config
+COPY config/ssh/sshd_config /etc/ssh/sshd_config
 RUN service ssh start
 
 # ============================
