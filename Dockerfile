@@ -85,40 +85,6 @@ RUN php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php')
 RUN php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;"
 RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
-
-# ============================
-# Create SSL Cert
-# ============================
-RUN mkdir /etc/apache2/ssl
-
-RUN openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
-RUN openssl rsa -passin pass:x -in server.pass.key -out /etc/apache2/ssl/apache.key
-RUN rm server.pass.key
-RUN openssl req -new -key /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/server.csr  \
-  -subj "/C=US/ST=Washington/L=SEA/O=coolblue/OU=IT Department/CN=localhost"
-RUN openssl x509 -req -days 365 -in /etc/apache2/ssl/server.csr -signkey /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/apache.crt
-RUN chmod 600 /etc/apache2/ssl/*
-
-# ============================
-# Configure Apache/PHP
-# ============================
-RUN rm /etc/apache2/sites-enabled/*
-COPY config/apache/vhost.conf /etc/apache2/sites-available/default.conf
-COPY config/apache/vhost-ssl.conf /etc/apache2/sites-available/default-ssl.conf
-COPY config/php/php.ini /usr/local/etc/php/
-
-RUN a2enmod rewrite
-RUN a2enmod ssl
-RUN a2enmod proxy
-RUN a2enmod headers
-RUN a2enmod expires
-
-# ============================
-# Enable Sites
-# ============================
-RUN a2ensite default-ssl
-RUN a2ensite default
-
 # ============================
 # CONFIG OPENSSH / START SERVICE
 # ============================
@@ -130,5 +96,3 @@ RUN service ssh start
 # ============================
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
-
-CMD ["apache2-foreground"]
