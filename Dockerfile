@@ -8,6 +8,9 @@ FROM php:7.0-apache
 # ============================
 ENV ROOT_USER_PASS root
 ENV DEV_USER_PASS admin
+GITHUB_REPO_URL
+GITHUB_USER
+GITHUB_USER_PASS
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
@@ -130,5 +133,13 @@ RUN service ssh start
 # ============================
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
+
+# ============================
+# Clone Repo
+# ============================
+ADD scripts/repo.sh repo.sh
+RUN chmod +x repo.sh
+CMD ./repo.sh
+
 
 CMD ["apache2-foreground"]
