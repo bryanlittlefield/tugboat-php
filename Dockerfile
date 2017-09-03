@@ -8,9 +8,6 @@ FROM php:7.0-apache
 # ============================
 ENV ROOT_USER_PASS root
 ENV DEV_USER_PASS admin
-GITHUB_REPO_URL
-GITHUB_USER
-GITHUB_USER_PASS
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
