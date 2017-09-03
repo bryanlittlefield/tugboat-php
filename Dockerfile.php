@@ -3,12 +3,6 @@
 # ============================
 FROM php:7.0-apache
 
-# ============================
-# SETUP BUILD ARGS
-# ============================
-ARG ROOT_USER_PASS
-ARG DEV_USER_PASS
-
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
 # ================================================
@@ -18,8 +12,6 @@ RUN useradd -p dev -ms /bin/bash -d /var/www/html dev
 RUN usermod -aG www-data dev
 RUN usermod -aG dev www-data
 RUN chown -R dev:dev /var/www/html
-RUN echo "dev:$DEV_USER_PASS" | chpasswd
-RUN echo "root:$ROOT_USER_PASS" | chpasswd
 
 # ============================
 # ADD APT SOURCES
@@ -132,11 +124,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
 
 # ============================
-# Clone Repo
+# Startup Script
 # ============================
-ADD scripts/repo.sh repo.sh
-RUN chmod +x repo.sh
-CMD ./repo.sh
-
-
-CMD ["apache2-foreground"]
+ADD scripts/repo.sh /usr/local/bin/run.sh
+RUN chmod +x /usr/local/bin/run.sh
+CMD ["/usr/local/bin/run.sh"]
