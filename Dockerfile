@@ -126,6 +126,6 @@ RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendma
 # ============================
 # Startup Script
 # ============================
-ADD scripts/repo.sh /usr/local/bin/run.sh
+ADD scripts/run.sh /usr/local/bin/run.sh
 RUN chmod +x /usr/local/bin/run.sh
 CMD ["/usr/local/bin/run.sh"]
