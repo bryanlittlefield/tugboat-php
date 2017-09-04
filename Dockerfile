@@ -4,6 +4,12 @@
 FROM php:7.0-apache
 
 # ===============================================
+# ENVIRONMENT VARS
+# ================================================
+ENV ROOT_USER_PASS=dev
+ENV DEV_USER_PASS=dev
+
+# ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
 # ================================================
 RUN usermod -u 1000 www-data
@@ -122,6 +128,7 @@ RUN service ssh start
 # ============================
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
+
 
 # ============================
 # Startup Script
