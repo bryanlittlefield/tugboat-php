@@ -71,6 +71,11 @@ RUN pecl install redis-3.1.0 \
     && docker-php-ext-enable redis
 
 # ============================
+# PECL SSH2 library
+# ============================
+RUN pecl install ssh2
+
+# ============================
 # xDebug
 # ============================
 RUN pecl install xdebug-2.5.0 \
