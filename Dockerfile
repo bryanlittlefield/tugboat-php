@@ -44,6 +44,7 @@ RUN apt-get install -y \
 	zlib1g-dev libicu-dev g++ \
     sqlite3 libsqlite3-dev \
     libxml2-dev \
+    libssh2-php \
 	libxslt-dev
 
 RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server
