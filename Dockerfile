@@ -75,7 +75,7 @@ RUN pecl install redis-3.1.0 \
 # ============================
 # PECL SSH2 library
 # ============================
-RUN pecl install ssh2
+RUN pecl install ssh2-1.0
 
 # ============================
 # xDebug
