@@ -3,11 +3,11 @@
 # ============================
 FROM php:5.6-apache
 
-# ============================
-# SETUP BUILD ARGS
-# ============================
-ENV ROOT_USER_PASS root
-ENV DEV_USER_PASS admin
+# ===============================================
+# ENVIRONMENT VARS
+# ================================================
+ENV ROOT_USER_PASS=dev
+ENV DEV_USER_PASS=dev
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
@@ -18,8 +18,6 @@ RUN useradd -p dev -ms /bin/bash -d /var/www/html dev
 RUN usermod -aG www-data dev
 RUN usermod -aG dev www-data
 RUN chown -R dev:dev /var/www/html
-RUN echo "dev:$DEV_USER_PASS" | chpasswd
-RUN echo "root:$ROOT_USER_PASS" | chpasswd
 
 # ============================
 # ADD APT SOURCES
@@ -46,6 +44,8 @@ RUN apt-get install -y \
 	zlib1g-dev libicu-dev g++ \
     sqlite3 libsqlite3-dev \
     libxml2-dev \
+    libssh2-1-dev \
+    libssh2-1 \
 	libxslt-dev
 
 RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server
@@ -73,6 +73,11 @@ RUN pecl install redis-3.1.0 \
     && docker-php-ext-enable redis
 
 # ============================
+# PECL SSH2 library
+# ============================
+RUN pecl install ssh2-1.0
+
+# ============================
 # xDebug
 # ============================
 RUN pecl install xdebug-2.5.0 \
@@ -82,7 +87,7 @@ RUN pecl install xdebug-2.5.0 \
 # Setup Composer
 # ============================
 RUN php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');"
-RUN php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;"
+RUN php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') === '544e09ee996cdf60ece3804abc52599c22b1f40f4323403c44d44fdfdd586475ca9813a858088ffbc1f233e9b180f061') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;"
 RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
 
@@ -131,4 +136,10 @@ RUN service ssh start
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
 
-CMD ["apache2-foreground"]
+
+# ============================
+# Startup Script
+# ============================
+ADD scripts/run.sh /usr/local/bin/run.sh
+RUN chmod +x /usr/local/bin/run.sh
+CMD ["/usr/local/bin/run.sh"]
