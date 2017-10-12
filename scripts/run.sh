@@ -16,7 +16,7 @@ echo ""
 sleep 1
 
 ###########################
-#GIT REPO
+#GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
 echo "STEP 1 of 1: Git Repository..."
@@ -41,6 +41,9 @@ else
             echo "Cloning Public Repo.."
             git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_URL"
         fi
+    else
+        echo "No Github credentials were passed. Pulling welcome page.."
+        curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
     fi
 
 fi
