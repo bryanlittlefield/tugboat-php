@@ -48,7 +48,7 @@ RUN apt-get install -y \
     libssh2-1 \
 	libxslt-dev
 
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncdu
+RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncduv zsh
 
 # ============================
 # CONFIG PHP EXTENSIONS
@@ -144,6 +144,11 @@ RUN service ssh start
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
 
+# ==================================================
+# ZSH CONFIG - Sets it to the default login shell
+# ==================================================
+RUN chsh -s /bin/zsh root
+RUN chsh -s /bin/zsh dev
 
 # ============================
 # Startup Script
