@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sleep 4 #This helps the output shopw after the other service logs finsih on startup
+sleep 4 #This helps the output show after the other service logs finish on startup
 echo ""
 echo ""
 echo " _____   _   _    ____   ____     ___       _      _____ "
@@ -16,7 +16,7 @@ echo ""
 sleep 1
 
 ###########################
-#GIT REPO
+#GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
 echo "STEP 1 of 1: Git Repository..."
@@ -36,13 +36,21 @@ else
         echo "Starting Cloning Process ......"
     	if [ "$GITHUB_USER_PASS" ]; then
             echo "Cloning Private Repo.."
-            git clone "https://$GITHUB_USER:$GITHUB_USER_PASS@github.com/$GITHUB_USER/$GITHUB_REPO_URL"
+            git clone "https://$GITHUB_USER:$GITHUB_USER_PASS@github.com/$GITHUB_USER/$GITHUB_REPO_URL" .
         else
             echo "Cloning Public Repo.."
-            git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_URL"
+            git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_URL" .
+        fi
+    else
+        echo "No Github credentials were passed. Check if the Directory is empty to pull in the welcome page.."
+        if [ -n "$(ls -A /var/www/html)" ]
+            then
+                echo "Directory contains files or directories, Pull in the Welcome Page"
+            else
+                echo "Directory Empty, Pull in the Welcome Page"
+                curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
         fi
     fi
-
 fi
 
 ###########################
