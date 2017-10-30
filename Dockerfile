@@ -128,9 +128,7 @@ RUN a2ensite default
 # Remove Configuration for Javascript Common
 # If not files in a Javascript directory in the web root will not be available.
 # ==============================================================================
-RUN a2disconf javascript-common \
-    service apache2 reload
-
+RUN a2disconf javascript-common 
 
 # ============================
 # CONFIG OPENSSH / START SERVICE
