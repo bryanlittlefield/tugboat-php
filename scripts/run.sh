@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sleep 4 #This helps the output shopw after the other service logs finsih on startup
+sleep 4 #This helps the output show after the other service logs finish on startup
 echo ""
 echo ""
 echo " _____   _   _    ____   ____     ___       _      _____ "
@@ -19,7 +19,7 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 1: Git Repository..."
+echo "STEP 1 of 4: Git Repository..."
 echo "================================================"
 
 cd /var/www/html
@@ -36,16 +36,21 @@ else
         echo "Starting Cloning Process ......"
     	if [ "$GITHUB_USER_PASS" ]; then
             echo "Cloning Private Repo.."
-            git clone "https://$GITHUB_USER:$GITHUB_USER_PASS@github.com/$GITHUB_USER/$GITHUB_REPO_URL ."
+            git clone "https://$GITHUB_USER:$GITHUB_USER_PASS@github.com/$GITHUB_USER/$GITHUB_REPO_URL" .
         else
             echo "Cloning Public Repo.."
-            git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_URL ."
+            git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_URL" .
         fi
     else
-        echo "No Github credentials were passed. Pulling welcome page.."
-        curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
+        echo "No Github credentials were passed. Check if the Directory is empty to pull in the welcome page.."
+        if [ -n "$(ls -A /var/www/html)" ]
+            then
+                echo "Directory contains files or directories, Pull in the Welcome Page"
+            else
+                echo "Directory Empty, Pull in the Welcome Page"
+                curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
+        fi
     fi
-
 fi
 
 ###########################
@@ -54,7 +59,7 @@ fi
 echo ""
 echo ""
 echo "================================================"
-echo "STEP 2 of 3: Updating Passwords"
+echo "STEP 2 of 4: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -84,10 +89,21 @@ echo "================================================"
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 3: Starting up the SSH Service        "
+echo "STEP 3 of 4: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
+echo "================================================"
+echo ""
+echo ""
+
+###########################
+#Reload Apache
+###########################
+echo "==========================================================="
+echo "STEP 4 of 4: Reloading Apache to apply new configurations"
+echo "==========================================================="
+service apache2 reload
 echo "================================================"
 echo ""
 echo ""

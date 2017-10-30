@@ -48,7 +48,7 @@ RUN apt-get install -y \
     libssh2-1 \
 	libxslt-dev
 
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server
+RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncdu zsh
 
 # ============================
 # CONFIG PHP EXTENSIONS
@@ -124,6 +124,12 @@ RUN a2enmod expires
 RUN a2ensite default-ssl
 RUN a2ensite default
 
+# ==============================================================================
+# Remove Configuration for Javascript Common
+# If not files in a Javascript directory in the web root will not be available.
+# ==============================================================================
+RUN a2disconf javascript-common
+
 # ============================
 # CONFIG OPENSSH / START SERVICE
 # ============================
@@ -136,6 +142,11 @@ RUN service ssh start
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
 
+# ==================================================
+# ZSH CONFIG - Sets it to the default login shell
+# ==================================================
+RUN chsh -s /bin/zsh root
+RUN chsh -s /bin/zsh dev
 
 # ============================
 # Startup Script
