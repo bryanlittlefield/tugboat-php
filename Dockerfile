@@ -48,7 +48,7 @@ RUN apt-get install -y \
     libssh2-1 \
 	libxslt-dev
 
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncduv zsh
+RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncdu zsh
 
 # ============================
 # CONFIG PHP EXTENSIONS
@@ -128,7 +128,7 @@ RUN a2ensite default
 # Remove Configuration for Javascript Common
 # If not files in a Javascript directory in the web root will not be available.
 # ==============================================================================
-RUN a2disconf javascript-common 
+RUN a2disconf javascript-common
 
 # ============================
 # CONFIG OPENSSH / START SERVICE
