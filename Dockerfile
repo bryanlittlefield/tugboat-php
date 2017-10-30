@@ -48,7 +48,7 @@ RUN apt-get install -y \
     libssh2-1 \
 	libxslt-dev
 
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server
+RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server ncdu
 
 # ============================
 # CONFIG PHP EXTENSIONS
