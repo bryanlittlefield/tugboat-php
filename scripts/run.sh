@@ -19,7 +19,7 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 1: Git Repository..."
+echo "STEP 1 of 4: Git Repository..."
 echo "================================================"
 
 cd /var/www/html
@@ -59,7 +59,7 @@ fi
 echo ""
 echo ""
 echo "================================================"
-echo "STEP 2 of 3: Updating Passwords"
+echo "STEP 2 of 4: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -89,10 +89,21 @@ echo "================================================"
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 3: Starting up the SSH Service        "
+echo "STEP 3 of 4: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
+echo "================================================"
+echo ""
+echo ""
+
+###########################
+#Reload Apache
+###########################
+echo "==========================================================="
+echo "STEP 4 of 4: Reloading Apache to apply new configurations"
+echo "==========================================================="
+service apache2 reload
 echo "================================================"
 echo ""
 echo ""
