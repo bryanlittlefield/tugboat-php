@@ -8,6 +8,8 @@ FROM php:5.6-apache
 # ================================================
 ENV ROOT_USER_PASS=dev
 ENV DEV_USER_PASS=dev
+ENV HTPASSWD_USER=tugboat
+ENV HTPASSWD_PASS=tugboat
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
