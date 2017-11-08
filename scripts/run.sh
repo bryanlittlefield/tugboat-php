@@ -28,7 +28,7 @@ if [ -d ".git" ]; then
 else
     # No Git Repo Found
     echo "----------------------------------------"
-    echo "Github Repo: $GITHUB_REPO_URL"
+    echo "Github Repo: $GITHUB_REPO_NAME"
     echo "Github Repo User: $GITHUB_USER"
     echo "----------------------------------------"
 
@@ -36,10 +36,10 @@ else
         echo "Starting Cloning Process ......"
     	if [ "$GITHUB_USER_PASS" ]; then
             echo "Cloning Private Repo.."
-            git clone "https://$GITHUB_USER:$GITHUB_USER_PASS@github.com/$GITHUB_USER/$GITHUB_REPO_URL" .
+            git clone "https://$GITHUB_USER:$GITHUB_USER_PASS@github.com/$GITHUB_USER/$GITHUB_REPO_NAME" .
         else
             echo "Cloning Public Repo.."
-            git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_URL" .
+            git clone "https://github.com/$GITHUB_USER/$GITHUB_REPO_NAME" .
         fi
     else
         echo "No Github credentials were passed. Check if the Directory is empty to pull in the welcome page.."
@@ -101,8 +101,24 @@ echo ""
 #Reload Apache
 ###########################
 echo "==========================================================="
-echo "STEP 4 of 4: Reloading Apache to apply new configurations"
+echo "STEP 4 of 4: Apache Configurations"
 echo "==========================================================="
+if [ $INCLUDE_HTPASSWD ]; then
+    echo "Setup htpasswd.."
+    htpasswd -b -c /etc/apache2/.htpasswd htpasswd -b -c /etc/apache2/.htpasswd $HTPASSWD_USER $HTPASSWD_PASS
+    sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default.conf
+    sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
+    sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
+    sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default.conf
+    echo "htpasswd setup successfully"
+    echo ""
+    echo "----------------------------------------"
+    echo "htpasswd Login Credentials"
+    echo "----------------"
+    echo "user: $HTPASSWD_USER"
+    echo "pass: $HTPASSWD_PASS"
+    echo "----------------------------------------"
+fi
 service apache2 reload
 echo "================================================"
 echo ""
