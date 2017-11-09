@@ -110,6 +110,12 @@ if [ $INCLUDE_HTPASSWD ]; then
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default.conf
+
+    sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default-ssl.conf
+    sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default-ssl.conf
+    sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default-ssl.conf
+    sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default-ssl.conf
+
     echo "htpasswd setup successfully"
     echo ""
     echo "----------------------------------------"
