@@ -119,7 +119,6 @@ if [ $INCLUDE_HTPASSWD ]; then
     echo "pass: $HTPASSWD_PASS"
     echo "----------------------------------------"
 fi
-service apache2 reload
 echo "================================================"
 echo ""
 echo ""
