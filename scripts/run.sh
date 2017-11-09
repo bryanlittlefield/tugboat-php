@@ -105,7 +105,7 @@ echo "STEP 4 of 4: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD ]; then
     echo "Setup htpasswd.."
-    htpasswd -b -c /etc/apache2/.htpasswd htpasswd -b -c /etc/apache2/.htpasswd $HTPASSWD_USER $HTPASSWD_PASS
+    htpasswd -b -c /etc/apache2/.htpasswd $HTPASSWD_USER $HTPASSWD_PASS
     sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default.conf
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
@@ -119,7 +119,6 @@ if [ $INCLUDE_HTPASSWD ]; then
     echo "pass: $HTPASSWD_PASS"
     echo "----------------------------------------"
 fi
-service apache2 reload
 echo "================================================"
 echo ""
 echo ""
