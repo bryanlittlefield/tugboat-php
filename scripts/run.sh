@@ -103,7 +103,7 @@ echo ""
 echo "==========================================================="
 echo "STEP 4 of 4: Apache Configurations"
 echo "==========================================================="
-if [ $INCLUDE_HTPASSWD ]; then
+if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
     htpasswd -b -c /etc/apache2/.htpasswd $HTPASSWD_USER $HTPASSWD_PASS
     sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default.conf
