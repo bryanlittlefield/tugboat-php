@@ -19,7 +19,7 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 4: Git Repository..."
+echo "STEP 1 of 5: Git Repository..."
 echo "================================================"
 
 cd /var/www/html
@@ -59,7 +59,7 @@ fi
 echo ""
 echo ""
 echo "================================================"
-echo "STEP 2 of 4: Updating Passwords"
+echo "STEP 2 of 5: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -89,7 +89,7 @@ echo "================================================"
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 4: Starting up the SSH Service        "
+echo "STEP 3 of 5: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
@@ -101,7 +101,7 @@ echo ""
 #Reload Apache
 ###########################
 echo "==========================================================="
-echo "STEP 4 of 4: Apache Configurations"
+echo "STEP 4 of 5: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
@@ -129,6 +129,26 @@ echo "================================================"
 echo ""
 echo ""
 
+###########################
+#Custom Files and Scripts
+###########################
+echo "==========================================================="
+echo "STEP 5 of 5: Custom Files and Scripts"
+echo "==========================================================="
+if [ $BUILD_FILES = true ]; then
+    cd /usr/local/bin/build-files
+    if [ -f "build.sh" ]; then
+        echo "build.sh script found! Running script..."
+        echo "==========================================================="
+        sh /usr/local/bin/build-files/build.sh
+    else
+        echo "build.sh script NOT found! Skipping script..."
+    fi
+else
+    echo "BUILD_FILES Environment Variable set to False. Skipping Container Build Scripts..."
+fi
+echo ""
+echo ""
 
 echo "================================================"
 echo " SETUP COMPLETE!                                "
