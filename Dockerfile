@@ -128,7 +128,6 @@ RUN a2ensite default
 
 # ==============================================================================
 # Remove Configuration for Javascript Common
-# If not files in a Javascript directory in the web root will not be available.
 # ==============================================================================
 RUN a2disconf javascript-common
 
@@ -149,6 +148,12 @@ RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendma
 # ==================================================
 RUN chsh -s /bin/zsh root
 RUN chsh -s /bin/zsh dev
+
+# =======================================
+# Add Files and Run Custom Scripts Script
+# =======================================
+ADD scripts/ /usr/local/bin/build-files
+RUN chmod +x /usr/local/bin/build-files/
 
 # ============================
 # Startup Script
