@@ -10,16 +10,27 @@ ENV ROOT_USER_PASS=dev
 ENV DEV_USER_PASS=dev
 ENV HTPASSWD_USER=tugboat
 ENV HTPASSWD_PASS=tugboat
+ENV SERVER_NAME=localhost
+ENV DOCUMENT_ROOT=/var/www/html
+ENV DIRECTORY_PERMISSION=775
+ENV FILE_PERMISSION=664
+ENV SKIP_PERMISSIONS=false
+ENV MAX_EXECUTION_TIME=0
+ENV MAX_INPUT_TIME=0
+ENV MAX_INPUT_VARS=1500
+ENV MEMORY_LIMIT=-1
+ENV POST_MAX_SIZE=0
+ENV UPLOAD_MAX_FILESIZE=2048M
+ENV DATE_TIMEZONE=America/Los_Angeles
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
 # ================================================
 RUN usermod -u 1000 www-data
 RUN groupmod -g 1000 www-data
-RUN useradd -p dev -ms /bin/bash -d /var/www/html dev
+RUN useradd dev -m
 RUN usermod -aG www-data dev
 RUN usermod -aG dev www-data
-RUN chown -R dev:dev /var/www/html
 
 # ============================
 # ADD APT SOURCES
@@ -83,7 +94,7 @@ RUN pecl install ssh2
 # xDebug
 # ============================
 RUN pecl install xdebug-2.5.0 \
-    && docker-php-ext-enable redis xdebug
+    && docker-php-ext-enable xdebug
 
 # ============================
 # Setup Composer
@@ -131,6 +142,11 @@ RUN a2ensite default
 # ==============================================================================
 RUN a2disconf javascript-common
 
+# ==============================================================================
+# Start up Cron service
+# ==============================================================================
+RUN service cron start
+
 # ============================
 # CONFIG OPENSSH / START SERVICE
 # ============================
@@ -154,6 +170,20 @@ RUN chsh -s /bin/zsh dev
 # =======================================
 ADD scripts/ /usr/local/bin/build-files
 RUN chmod +x /usr/local/bin/build-files/
+
+
+# =======================================
+# Install NodeJS and Yarn
+# =======================================
+RUN apt-get install -y apt-transport-https
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN apt-get install -y nodejs
+RUN apt-get install -y yarn
+RUN yarn global add browser-sync
+RUN yarn global add gulp gulp-yarn
+
 
 # ============================
 # Startup Script
