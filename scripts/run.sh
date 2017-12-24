@@ -9,7 +9,7 @@ echo "  | |   | | | | | |  _  |  _ \  | | | |   / _ \     | |  "
 echo "  | |   | |_| | | |_| | | |_) | | |_| |  / ___ \    | |  "
 echo "  |_|    \___/   \____| |____/   \___/  /_/   \_\   |_|  "
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-echo "|   ****** Version 2.1.0 - George the Valiant ******     |"
+echo "|   ****** Version 3.0.0 - Emily the Vigorous ******     |"
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo ""
 echo ""
@@ -19,12 +19,12 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 5: Git Repository..."
+echo "STEP 1 of 6: Git Repository..."
 echo "================================================"
 
-cd /var/www/html
+cd $DOCUMENT_ROOT
 if [ -d ".git" ]; then
-    echo "Git Repository Already Exists in /var/www/html"
+    echo "Git Repository Already Exists in $DOCUMENT_ROOT"
 else
     # No Git Repo Found
     echo "----------------------------------------"
@@ -43,7 +43,7 @@ else
         fi
     else
         echo "No Github credentials were passed. Check if the Directory is empty to pull in the welcome page.."
-        if [ -n "$(ls -A /var/www/html)" ]
+        if [ -n "$(ls -A $DOCUMENT_ROOT)" ]
             then
                 echo "Directory contains files or directories, Pull in the Welcome Page"
             else
@@ -59,7 +59,7 @@ fi
 echo ""
 echo ""
 echo "================================================"
-echo "STEP 2 of 5: Updating Passwords"
+echo "STEP 2 of 6: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -89,7 +89,7 @@ echo "================================================"
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 5: Starting up the SSH Service        "
+echo "STEP 3 of 6: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
@@ -101,7 +101,7 @@ echo ""
 #Reload Apache
 ###########################
 echo "==========================================================="
-echo "STEP 4 of 5: Apache Configurations"
+echo "STEP 4 of 6: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
@@ -133,7 +133,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 5 of 5: Custom Files and Scripts"
+echo "STEP 5 of 6: Custom Files and Scripts"
 echo "==========================================================="
 if [ $BUILD_FILES = true ]; then
     cd /usr/local/bin/build-files
@@ -149,6 +149,30 @@ else
 fi
 echo ""
 echo ""
+
+###########################
+#Custom Files and Scripts
+###########################
+echo "==========================================================="
+echo "STEP 6 of 6: Set Permissions"
+echo "==========================================================="
+    mkdir -p $DOCUMENT_ROOT
+    chown -R dev:dev $DOCUMENT_ROOT
+    if [ $SKIP_PERMISSIONS = true ]; then
+        echo "Skipping Permissions Reset on Build.."
+    else
+        echo "Resetting Permissions in $DOCUMENT_ROOT.."
+        echo "-----------"
+        echo ""
+        find $DOCUMENT_ROOT -type d -exec chmod $DIRECTORY_PERMISSION {} \;
+        echo "Directory Permissions: $DIRECTORY_PERMISSION"
+        echo ""
+        find $DOCUMENT_ROOT -type f -exec chmod $FILE_PERMISSION {} \;
+        echo "File Permissions: $FILE_PERMISSION"
+    fi
+echo ""
+echo ""
+
 
 echo "================================================"
 echo " SETUP COMPLETE!                                "
