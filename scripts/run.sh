@@ -19,7 +19,7 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 6: Git Repository..."
+echo "STEP 1 of 7: Git Repository..."
 echo "================================================"
 
 cd $DOCUMENT_ROOT
@@ -59,7 +59,7 @@ fi
 echo ""
 echo ""
 echo "================================================"
-echo "STEP 2 of 6: Updating Passwords"
+echo "STEP 2 of 7: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -89,7 +89,7 @@ echo "================================================"
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 6: Starting up the SSH Service        "
+echo "STEP 3 of 7: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
@@ -101,7 +101,7 @@ echo ""
 #Reload Apache
 ###########################
 echo "==========================================================="
-echo "STEP 4 of 6: Apache Configurations"
+echo "STEP 4 of 7: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
@@ -133,7 +133,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 5 of 6: Custom Files and Scripts"
+echo "STEP 5 of 7: Custom Files and Scripts"
 echo "==========================================================="
 if [ $BUILD_FILES = true ]; then
     cd /usr/local/bin/build-files
@@ -154,7 +154,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 6 of 6: Set Permissions"
+echo "STEP 6 of 7: Set Permissions"
 echo "==========================================================="
     mkdir -p $DOCUMENT_ROOT
     chown -R dev:dev $DOCUMENT_ROOT
@@ -172,6 +172,32 @@ echo "==========================================================="
     fi
 echo ""
 echo ""
+
+
+###########################
+#Custom Files and Scripts
+###########################
+echo "==========================================================="
+echo "STEP 7 of 7: Install and Configure Webmin"
+echo "==========================================================="
+if [ $USE_WEBMIN = true ]; then
+    echo "Starting Webmin Installation..."
+    rm /etc/apt/apt.conf.d/docker-gzip-indexes
+    cd /root
+    wget http://www.webmin.com/jcameron-key.asc
+    apt-key add jcameron-key.asc
+    echo "deb http://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
+    echo "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib" >> /etc/apt/sources.list
+    apt-get update
+    apt-get -y install webmin
+    service webmin start
+    echo "Webmin Succesfully Installed"
+    echo "----------------------------------------a"
+    echo "Access URL: my.site.address:10000"
+    echo "----------------------------------------"
+else
+    echo "Skipping Webmin Installation..."
+fi
 
 
 echo "================================================"
