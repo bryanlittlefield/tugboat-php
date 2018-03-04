@@ -8,16 +8,30 @@ FROM php:7.1.0-apache
 # ================================================
 ENV ROOT_USER_PASS=dev
 ENV DEV_USER_PASS=dev
+ENV HTPASSWD_USER=tugboat
+ENV HTPASSWD_PASS=tugboat
+ENV SERVER_NAME=localhost
+ENV DOCUMENT_ROOT=/var/www/html
+ENV DIRECTORY_PERMISSION=775
+ENV FILE_PERMISSION=664
+ENV SKIP_PERMISSIONS=false
+ENV MAX_EXECUTION_TIME=0
+ENV MAX_INPUT_TIME=0
+ENV MAX_INPUT_VARS=1500
+ENV MEMORY_LIMIT=-1
+ENV POST_MAX_SIZE=0
+ENV UPLOAD_MAX_FILESIZE=2048M
+ENV DATE_TIMEZONE=America/Los_Angeles
+ENV WHITELIST_IP=
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
 # ================================================
 RUN usermod -u 1000 www-data
 RUN groupmod -g 1000 www-data
-RUN useradd -p dev -ms /bin/bash -d /var/www/html dev
+RUN useradd dev -m
 RUN usermod -aG www-data dev
 RUN usermod -aG dev www-data
-RUN chown -R dev:dev /var/www/html
 
 # ============================
 # ADD APT SOURCES
@@ -48,13 +62,13 @@ RUN apt-get install -y \
     libssh2-1 \
 	libxslt-dev
 
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server
+RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncdu zsh
 
 # ============================
 # CONFIG PHP EXTENSIONS
 # ============================
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
 RUN docker-php-ext-install gd
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
 RUN docker-php-ext-install iconv
 RUN docker-php-ext-install mcrypt
 RUN docker-php-ext-install mbstring
@@ -81,7 +95,7 @@ RUN pecl install ssh2-1.0
 # xDebug
 # ============================
 RUN pecl install xdebug-2.5.0 \
-    && docker-php-ext-enable redis xdebug
+    && docker-php-ext-enable xdebug
 
 # ============================
 # Setup Composer
@@ -124,6 +138,16 @@ RUN a2enmod expires
 RUN a2ensite default-ssl
 RUN a2ensite default
 
+# ==============================================================================
+# Remove Configuration for Javascript Common
+# ==============================================================================
+RUN a2disconf javascript-common
+
+# ==============================================================================
+# Start up Cron service
+# ==============================================================================
+RUN service cron start
+
 # ============================
 # CONFIG OPENSSH / START SERVICE
 # ============================
@@ -135,6 +159,34 @@ RUN service ssh start
 # ============================
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
+
+# ==================================================
+# ZSH CONFIG - Sets it to the default login shell
+# ==================================================
+RUN chsh -s /bin/zsh root
+RUN chsh -s /bin/zsh dev
+
+
+# =======================================
+# Install NodeJS and Yarn
+# =======================================
+RUN apt-get install -y apt-transport-https
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN apt-get install -y nodejs
+RUN apt-get install -y yarn
+RUN yarn global add browser-sync
+RUN yarn global add gulp gulp-yarn
+RUN yarn global add gulp-scss
+RUN yarn global add gulp-watch
+
+
+# =======================================
+# Add Files and Run Custom Scripts Script
+# =======================================
+ADD scripts/ /usr/local/bin/build-files
+RUN chmod +x /usr/local/bin/build-files/
 
 
 # ============================
