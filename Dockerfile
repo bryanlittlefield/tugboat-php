@@ -189,6 +189,13 @@ ADD scripts/ /usr/local/bin/build-files
 RUN chmod +x /usr/local/bin/build-files/
 
 
+# =======================================
+# Add Files and Run Custom Scripts Script
+# =======================================
+ADD scripts/ /usr/local/bin/build-files
+RUN chmod +x /usr/local/bin/build-files/
+
+
 # ============================
 # Startup Script
 # ============================
