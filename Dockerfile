@@ -22,6 +22,7 @@ ENV MEMORY_LIMIT=-1
 ENV POST_MAX_SIZE=0
 ENV UPLOAD_MAX_FILESIZE=2048M
 ENV DATE_TIMEZONE=America/Los_Angeles
+ENV WHITELIST_IP=127.0.0.1
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
@@ -66,8 +67,8 @@ RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig rub
 # ============================
 # CONFIG PHP EXTENSIONS
 # ============================
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
 RUN docker-php-ext-install gd
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
 RUN docker-php-ext-install iconv
 RUN docker-php-ext-install mcrypt
 RUN docker-php-ext-install mbstring
@@ -165,12 +166,6 @@ RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendma
 RUN chsh -s /bin/zsh root
 RUN chsh -s /bin/zsh dev
 
-# =======================================
-# Add Files and Run Custom Scripts Script
-# =======================================
-ADD scripts/ /usr/local/bin/build-files
-RUN chmod +x /usr/local/bin/build-files/
-
 
 # =======================================
 # Install NodeJS and Yarn
@@ -183,6 +178,13 @@ RUN apt-get install -y nodejs
 RUN apt-get install -y yarn
 RUN yarn global add browser-sync
 RUN yarn global add gulp gulp-yarn
+
+
+# =======================================
+# Add Files and Run Custom Scripts Script
+# =======================================
+ADD scripts/ /usr/local/bin/build-files
+RUN chmod +x /usr/local/bin/build-files/
 
 
 # ============================

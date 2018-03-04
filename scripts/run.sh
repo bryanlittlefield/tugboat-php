@@ -105,17 +105,33 @@ echo "STEP 4 of 7: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
+
+    #Generate htpasswd
     htpasswd -b -c /etc/apache2/.htpasswd $HTPASSWD_USER $HTPASSWD_PASS
+
+    #Setup Non-Secure Configuration
     sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default.conf
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default.conf
+    if [ $WHITELIST_IP  ]; then
+        sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
+        sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default.conf
+    else
+        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
+    fi
 
+    #SSL CONFIG
     sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default-ssl.conf
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default-ssl.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default-ssl.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default-ssl.conf
-
+    if [ $WHITELIST_IP ]; then
+        sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
+        sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default-ssl.conf
+    else
+        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
+    fi
     echo "htpasswd setup successfully"
     echo ""
     echo "----------------------------------------"
@@ -124,6 +140,36 @@ if [ $INCLUDE_HTPASSWD = true ]; then
     echo "user: $HTPASSWD_USER"
     echo "pass: $HTPASSWD_PASS"
     echo "----------------------------------------"
+    echo "Whitelist IP:${WHITELIST_IP} found..."
+    echo "----------------------------------------"
+    echo "!!Allow Incoming Connections from only ${WHITELIST_IP}!!"
+    echo "----------------------------------------"
+#If not htpasswd is set skip
+else
+    echo "Skipping htpasswd..."
+
+    #Check for IPs to Whitelist
+    echo "Checking for Whitelist IP..."
+    if [ $WHITELIST_IP ]; then
+        echo "Whitelist IP:${WHITELIST_IP} found..."
+
+        echo "----------------------------------------"
+        echo "!!Allow Incoming Secure Connections from only ${WHITELIST_IP}!!"
+        echo "----------------------------------------"
+        #Non-Secure
+        sed -i '16i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
+        #Secure
+        sed -i '16i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
+    else
+        echo "Whitelist IP Not Set In .env file..."
+        echo "----------------------------------------"
+        echo "!!Allow All Incoming Connections!!"
+        echo "----------------------------------------"
+        #Non-Secure
+        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
+        #Secure
+        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
+    fi
 fi
 echo "================================================"
 echo ""
