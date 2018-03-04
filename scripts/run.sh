@@ -9,7 +9,7 @@ echo "  | |   | | | | | |  _  |  _ \  | | | |   / _ \     | |  "
 echo "  | |   | |_| | | |_| | | |_) | | |_| |  / ___ \    | |  "
 echo "  |_|    \___/   \____| |____/   \___/  /_/   \_\   |_|  "
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-echo "|   ****** Version 3.0.0 - Emily the Vigorous ******     |"
+echo "|   ****** Version $TUGBOAT_VERSION - Emily the Vigorous ******     |"
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo ""
 echo ""
@@ -19,7 +19,7 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 6: Git Repository..."
+echo "STEP 1 of 7: Git Repository..."
 echo "================================================"
 
 cd $DOCUMENT_ROOT
@@ -59,7 +59,7 @@ fi
 echo ""
 echo ""
 echo "================================================"
-echo "STEP 2 of 6: Updating Passwords"
+echo "STEP 2 of 7: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -89,7 +89,7 @@ echo "================================================"
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 6: Starting up the SSH Service        "
+echo "STEP 3 of 7: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
@@ -101,21 +101,37 @@ echo ""
 #Reload Apache
 ###########################
 echo "==========================================================="
-echo "STEP 4 of 6: Apache Configurations"
+echo "STEP 4 of 7: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
+
+    #Generate htpasswd
     htpasswd -b -c /etc/apache2/.htpasswd $HTPASSWD_USER $HTPASSWD_PASS
+
+    #Setup Non-Secure Configuration
     sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default.conf
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default.conf
+    if [ $WHITELIST_IP  ]; then
+        sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
+        sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default.conf
+    else
+        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
+    fi
 
+    #SSL CONFIG
     sed -i '16i\\t\tAuthType Basic' /etc/apache2/sites-available/default-ssl.conf
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default-ssl.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default-ssl.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default-ssl.conf
-
+    if [ $WHITELIST_IP ]; then
+        sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
+        sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default-ssl.conf
+    else
+        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
+    fi
     echo "htpasswd setup successfully"
     echo ""
     echo "----------------------------------------"
@@ -124,6 +140,36 @@ if [ $INCLUDE_HTPASSWD = true ]; then
     echo "user: $HTPASSWD_USER"
     echo "pass: $HTPASSWD_PASS"
     echo "----------------------------------------"
+    echo "Whitelist IP:${WHITELIST_IP} found..."
+    echo "----------------------------------------"
+    echo "!!Allow Incoming Connections from only ${WHITELIST_IP}!!"
+    echo "----------------------------------------"
+#If not htpasswd is set skip
+else
+    echo "Skipping htpasswd..."
+
+    #Check for IPs to Whitelist
+    echo "Checking for Whitelist IP..."
+    if [ $WHITELIST_IP ]; then
+        echo "Whitelist IP:${WHITELIST_IP} found..."
+
+        echo "----------------------------------------"
+        echo "!!Allow Incoming Secure Connections from only ${WHITELIST_IP}!!"
+        echo "----------------------------------------"
+        #Non-Secure
+        sed -i '16i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
+        #Secure
+        sed -i '16i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
+    else
+        echo "Whitelist IP Not Set In .env file..."
+        echo "----------------------------------------"
+        echo "!!Allow All Incoming Connections!!"
+        echo "----------------------------------------"
+        #Non-Secure
+        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
+        #Secure
+        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
+    fi
 fi
 echo "================================================"
 echo ""
@@ -133,7 +179,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 5 of 6: Custom Files and Scripts"
+echo "STEP 5 of 7: Custom Files and Scripts"
 echo "==========================================================="
 if [ $BUILD_FILES = true ]; then
     cd /usr/local/bin/build-files
@@ -154,7 +200,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 6 of 6: Set Permissions"
+echo "STEP 6 of 7: Set Permissions"
 echo "==========================================================="
     mkdir -p $DOCUMENT_ROOT
     chown -R dev:dev $DOCUMENT_ROOT
@@ -172,6 +218,32 @@ echo "==========================================================="
     fi
 echo ""
 echo ""
+
+
+###########################
+#Custom Files and Scripts
+###########################
+echo "==========================================================="
+echo "STEP 7 of 7: Install and Configure Webmin"
+echo "==========================================================="
+if [ $USE_WEBMIN = true ]; then
+    echo "Starting Webmin Installation..."
+    rm /etc/apt/apt.conf.d/docker-gzip-indexes
+    cd /root
+    wget http://www.webmin.com/jcameron-key.asc
+    apt-key add jcameron-key.asc
+    echo "deb http://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
+    echo "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib" >> /etc/apt/sources.list
+    apt-get update
+    apt-get -y install webmin
+    service webmin start
+    echo "Webmin Succesfully Installed"
+    echo "----------------------------------------a"
+    echo "Access URL: my.site.address:10000"
+    echo "----------------------------------------"
+else
+    echo "Skipping Webmin Installation..."
+fi
 
 
 echo "================================================"
