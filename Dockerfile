@@ -22,7 +22,7 @@ ENV MEMORY_LIMIT=-1
 ENV POST_MAX_SIZE=0
 ENV UPLOAD_MAX_FILESIZE=2048M
 ENV DATE_TIMEZONE=America/Los_Angeles
-ENV WHITELIST_IP=127.0.0.1
+ENV WHITELIST_IP=
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
@@ -178,6 +178,15 @@ RUN apt-get install -y nodejs
 RUN apt-get install -y yarn
 RUN yarn global add browser-sync
 RUN yarn global add gulp gulp-yarn
+RUN yarn global add gulp-scss
+RUN yarn global add gulp-watch
+
+
+# =======================================
+# Add Files and Run Custom Scripts Script
+# =======================================
+ADD scripts/ /usr/local/bin/build-files
+RUN chmod +x /usr/local/bin/build-files/
 
 
 # =======================================
