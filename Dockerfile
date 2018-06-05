@@ -53,7 +53,7 @@ RUN apt-get install -y \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libmcrypt-dev \
-    libpng12-dev \
+    libpng-dev \
     libpq-dev \
 	zlib1g-dev libicu-dev g++ \
     sqlite3 libsqlite3-dev \
@@ -62,13 +62,13 @@ RUN apt-get install -y \
     libssh2-1 \
 	libxslt-dev
 
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget chkconfig ruby rubygems ruby-dev screen openssl openssh-server nano ncdu zsh
+RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server nano ncdu zsh
 
 # ============================
 # CONFIG PHP EXTENSIONS
 # ============================
-RUN docker-php-ext-install gd
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+RUN docker-php-ext-install gd
 RUN docker-php-ext-install iconv
 RUN docker-php-ext-install mcrypt
 RUN docker-php-ext-install mbstring
@@ -110,7 +110,7 @@ RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 # ============================
 RUN mkdir /etc/apache2/ssl
 
-RUN openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+RUN openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out server.pass.key
 RUN openssl rsa -passin pass:x -in server.pass.key -out /etc/apache2/ssl/apache.key
 RUN rm server.pass.key
 RUN openssl req -new -key /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/server.csr  \
@@ -171,6 +171,7 @@ RUN chsh -s /bin/zsh dev
 # Install NodeJS and Yarn
 # =======================================
 RUN apt-get install -y apt-transport-https
+RUN apt-get install -y gnupg
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
