@@ -84,7 +84,7 @@ RUN docker-php-ext-install intl
 RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
-RUN pecl install redis-3.1.0 \
+RUN pecl install redis-3.1.3 \
     && docker-php-ext-enable redis
 
 # ============================
