@@ -95,7 +95,7 @@ RUN pecl install ssh2-1.0
 # ============================
 # xDebug
 # ============================
-RUN pecl install xdebug-2.5.0 \
+RUN pecl install xdebug-2.6.0beta1 \
     && docker-php-ext-enable xdebug
 
 # ============================
