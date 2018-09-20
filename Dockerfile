@@ -1,7 +1,7 @@
 # ============================
 # PULL OFFICIAL PHP REPO
 # ============================
-FROM php:7.1.0-apache
+FROM php:7.1.22-apache
 
 # ===============================================
 # ENVIRONMENT VARS
