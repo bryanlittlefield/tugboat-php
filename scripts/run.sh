@@ -9,7 +9,7 @@ echo "  | |   | | | | | |  _  |  _ \  | | | |   / _ \     | |  "
 echo "  | |   | |_| | | |_| | | |_) | | |_| |  / ___ \    | |  "
 echo "  |_|    \___/   \____| |____/   \___/  /_/   \_\   |_|  "
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-echo "|   ****** Version $TUGBOAT_VERSION - Emily the Vigorous ******     |"
+echo "|   ****** Version $TUGBOAT_VERSION - Hank the Volcano ******     |"
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo ""
 echo ""
@@ -19,7 +19,7 @@ sleep 1
 #GIT REPO OR WELCOME PAGE
 ###########################
 echo "================================================"
-echo "STEP 1 of 7: Git Repository..."
+echo "STEP 1 of 9: Git Repository..."
 echo "================================================"
 
 cd $DOCUMENT_ROOT
@@ -52,14 +52,15 @@ else
         fi
     fi
 fi
+echo "================================================"
+echo ""
+echo ""
 
 ###########################
 #Update User Passwords
 ###########################
-echo ""
-echo ""
 echo "================================================"
-echo "STEP 2 of 7: Updating Passwords"
+echo "STEP 2 of 9: Updating Passwords"
 echo "================================================"
 echo "dev:$DEV_USER_PASS" | chpasswd
 echo "root:$ROOT_USER_PASS" | chpasswd
@@ -84,12 +85,14 @@ echo "port: 2222"
 echo "user: dev"
 echo "passsword: $DEV_USER_PASS"
 echo "================================================"
+echo ""
+echo ""
 
 ###########################
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 7: Starting up the SSH Service        "
+echo "STEP 3 of 9: Starting up the SSH Service        "
 echo "================================================"
 service ssh start
 service ssh restart
@@ -101,7 +104,7 @@ echo ""
 #Reload Apache
 ###########################
 echo "==========================================================="
-echo "STEP 4 of 7: Apache Configurations"
+echo "STEP 4 of 9: Apache Configurations"
 echo "==========================================================="
 if [ $INCLUDE_HTPASSWD = true ]; then
     echo "Setup htpasswd.."
@@ -179,7 +182,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 5 of 7: Custom Files and Scripts"
+echo "STEP 5 of 9: Custom Files and Scripts"
 echo "==========================================================="
 if [ $BUILD_FILES = true ]; then
     cd /usr/local/bin/build-files
@@ -200,10 +203,12 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 6 of 7: Set Permissions"
+echo "STEP 6 of 9: Set Permissions"
 echo "==========================================================="
     mkdir -p $DOCUMENT_ROOT
-    chown -R dev:dev $DOCUMENT_ROOT
+    chmod -R 775 $DOCUMENT_ROOT
+    chmod -R 775 $WEB_ROOT
+    chown -R www-data:www-data $DOCUMENT_ROOT
     if [ $SKIP_PERMISSIONS = true ]; then
         echo "Skipping Permissions Reset on Build.."
     else
@@ -224,7 +229,7 @@ echo ""
 #Custom Files and Scripts
 ###########################
 echo "==========================================================="
-echo "STEP 7 of 7: Install and Configure Webmin"
+echo "STEP 7 of 9: Install and Configure Webmin"
 echo "==========================================================="
 if [ $USE_WEBMIN = true ]; then
     echo "Starting Webmin Installation..."
@@ -244,6 +249,62 @@ if [ $USE_WEBMIN = true ]; then
 else
     echo "Skipping Webmin Installation..."
 fi
+echo ""
+echo ""
+
+###########################
+# Generate Private Key
+###########################
+echo "==========================================================="
+echo "STEP 8 of 9: Generate SSL CERT"
+echo "==========================================================="
+echo "Setting up Self-Signed Cert.."
+openssl genrsa -des3 -passout pass:xxxx -out server.pass.key 2048 && \
+openssl rsa -passin pass:xxxx -in server.pass.key -out $SSL_CERTIFICATE_KEY_FILE && \
+rm server.pass.key && \
+openssl req -new -key $SSL_CERTIFICATE_KEY_FILE -out /etc/apache2/ssl/server.csr -extensions SAN -reqexts SAN  \
+   -subj "/C=US/ST=Washington/L=SEA/O=coolblue/OU=IT Department/CN=$SERVER_NAME" \
+   -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:$SERVER_NAME")) && \
+openssl x509 -req -days 365 -in /etc/apache2/ssl/server.csr -signkey $SSL_CERTIFICATE_KEY_FILE -out $SSL_CERTIFICATE_FILE
+if [ $SSL_CERT_TYPE = "CERTBOT" ]; then
+
+    echo "Run the following Command to Finish the Installation of your LetsEncrypt SSL SHA-2 Cert via CertBot "
+    echo "-----------------------------------"
+    echo "1) Log into Docker Host and run:"
+    echo "docker exec -it ${PROJECT_NAME}_web sh /usr/local/bin/tugboat-cert/certbot.sh && docker kill --signal='USR1' ${PROJECT_NAME}_web"
+    echo ""
+    echo "2) Confirm your CERT is ready by going to your following domain: $SERVER_NAME and confirming that it is secure"
+    echo "-----------------------------------"
+
+    cd /etc/ssl
+    echo "Run the following Command to Finish the Installation of your LetsEncrypt SSL SHA-2 Cert via CertBot " >> ssl-instructions.txt
+    echo "-----------------------------------" >> ssl-instructions.txt
+    echo "1) Log into Docker Host and run:" >> ssl-instructions.txt
+    echo "docker exec -it ${PROJECT_NAME}_web sh /usr/local/bin/tugboat-cert/certbot.sh && docker kill --signal='USR1' ${PROJECT_NAME}_web" >> ssl-instructions.txt
+    echo "" >> ssl-instructions.txt
+    echo "2) Confirm your CERT is ready by going to your following domain: $SERVER_NAME and confirming that it is secure" >> ssl-instructions.txt
+    echo "-----------------------------------" >> ssl-instructions.txt
+fi
+echo ""
+echo ""
+docker exec -it tugboat_web sh /usr/local/bin/tugboat-cert/certbot.sh && docker kill --signal='USR1' tugboat_web
+
+###########################
+# Unset ENV Vars
+###########################
+echo "==============================================================="
+echo "STEP 9 of 9: Unset ENV Vars that contian paswords for security"
+echo "==============================================================="
+unset HTPASSWD_USER
+unset HTPASSWD_PASS
+unset ROOT_USER_PASS
+unset DEV_USER_PASS
+unset MYSQL_ROOT_PASSWORD
+unset MYSQL_DATABASE
+unset MYSQL_USER
+unset MYSQL_PASSWORD
+echo ""
+echo ""
 
 
 echo "================================================"
