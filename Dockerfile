@@ -71,7 +71,7 @@ RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget ruby rubygems
 # ============================
 # Install mcrypt
 # ============================
-RUN if [ "${PHP_VERSION}" = "7.2.13" ]; then printf "\n" | pecl install mcrypt-1.0.1; docker-php-ext-enable mcrypt; else docker-php-ext-install mcrypt ; fi
+RUN if [ "${PHP_VERSION}" = "7.2.14" ]; then printf "\n" | pecl install mcrypt-1.0.1; docker-php-ext-enable mcrypt; else docker-php-ext-install mcrypt ; fi
 
 
 # ============================
