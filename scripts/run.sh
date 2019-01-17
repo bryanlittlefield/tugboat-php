@@ -206,9 +206,9 @@ echo "==========================================================="
 echo "STEP 6 of 9: Set Permissions"
 echo "==========================================================="
     mkdir -p $DOCUMENT_ROOT
-    chmod -R 775 $DOCUMENT_ROOT
-    chmod -R 775 $WEB_ROOT
     chown -R www-data:www-data $DOCUMENT_ROOT
+    chmod go+x $DOCUMENT_ROOT
+    chmod -R g+rwx $DOCUMENT_ROOT
     if [ $SKIP_PERMISSIONS = true ]; then
         echo "Skipping Permissions Reset on Build.."
     else
@@ -287,7 +287,6 @@ if [ $SSL_CERT_TYPE = "CERTBOT" ]; then
 fi
 echo ""
 echo ""
-docker exec -it tugboat_web sh /usr/local/bin/tugboat-cert/certbot.sh && docker kill --signal='USR1' tugboat_web
 
 ###########################
 # Unset ENV Vars
