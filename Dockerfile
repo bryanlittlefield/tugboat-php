@@ -106,8 +106,8 @@ RUN pecl install redis-4.2.0 \
 RUN { \
 		echo 'opcache.memory_consumption=128'; \
 		echo 'opcache.interned_strings_buffer=8'; \
-		echo 'opcache.max_accelerated_files=4000'; \
-		echo 'opcache.revalidate_freq=2'; \
+		echo 'opcache.max_accelerated_files=40000'; \
+		echo 'opcache.revalidate_freq=60'; \
 		echo 'opcache.fast_shutdown=1'; \
 		echo 'opcache.enable_cli=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
@@ -116,12 +116,6 @@ RUN { \
 # PECL SSH2 library
 # ============================
 RUN pecl install ssh2-1.0
-
-# ============================
-# xDebug
-# ============================
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug
 
 # ============================
 # Setup Composer
@@ -141,8 +135,8 @@ RUN mkdir /etc/apache2/ssl
 # Configure Apache/PHP
 # ============================
 RUN rm /etc/apache2/sites-enabled/*
-COPY config/apache/vhost.conf /etc/apache2/sites-available/default.conf
-COPY config/apache/vhost-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+COPY config/apache/default.conf /etc/apache2/sites-available/default.conf
+COPY config/apache/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
 COPY config/php/php.ini /usr/local/etc/php/
 
 RUN a2enmod rewrite
@@ -194,7 +188,7 @@ RUN apt-get install -y apt-transport-https
 RUN apt-get install -y gnupg
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
 RUN apt-get install -y nodejs
 RUN apt-get install -y yarn
 RUN yarn global add browser-sync
