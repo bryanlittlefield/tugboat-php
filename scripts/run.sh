@@ -117,7 +117,7 @@ if [ $INCLUDE_HTPASSWD = true ]; then
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default.conf
-    if [ $WHITELIST_IP  ]; then
+    if [ -z $WHITELIST_IP  ]; then
         sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
         sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default.conf
     else
@@ -129,7 +129,7 @@ if [ $INCLUDE_HTPASSWD = true ]; then
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default-ssl.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default-ssl.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default-ssl.conf
-    if [ $WHITELIST_IP ]; then
+    if [ -z $WHITELIST_IP ]; then
         sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
         sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default-ssl.conf
     else
@@ -153,7 +153,7 @@ else
 
     #Check for IPs to Whitelist
     echo "Checking for Whitelist IP..."
-    if [ $WHITELIST_IP ]; then
+    if [ -z $WHITELIST_IP ]; then
         echo "Whitelist IP:${WHITELIST_IP} found..."
 
         echo "----------------------------------------"
@@ -206,9 +206,6 @@ echo "==========================================================="
 echo "STEP 6 of 9: Set Permissions"
 echo "==========================================================="
     mkdir -p $DOCUMENT_ROOT
-    chown -R www-data:www-data $DOCUMENT_ROOT
-    chmod go+x $DOCUMENT_ROOT
-    chmod -R g+rwx $DOCUMENT_ROOT
     if [ $SKIP_PERMISSIONS = true ]; then
         echo "Skipping Permissions Reset on Build.."
     else
