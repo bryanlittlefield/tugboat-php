@@ -9,7 +9,7 @@ echo "  | |   | | | | | |  _  |  _ \  | | | |   / _ \     | |  "
 echo "  | |   | |_| | | |_| | | |_) | | |_| |  / ___ \    | |  "
 echo "  |_|    \___/   \____| |____/   \___/  /_/   \_\   |_|  "
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-echo "|   ****** Version $TUGBOAT_VERSION - Hank the Volcano ******     |"
+echo "|   ****** Version $TUGBOAT_VERSION - The Dispatcher ******     |"
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo ""
 echo ""
@@ -45,10 +45,10 @@ else
         echo "No Github credentials were passed. Check if the Directory is empty to pull in the welcome page.."
         if [ -n "$(ls -A $DOCUMENT_ROOT)" ]
             then
-                echo "Directory contains files or directories, Pull in the Welcome Page"
+                echo "Directory contains files or directories."
             else
-                echo "Directory Empty, Pull in the Welcome Page"
-                curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
+                echo "Directory Empty"
+                # curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
         fi
     fi
 fi

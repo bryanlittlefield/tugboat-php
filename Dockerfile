@@ -1,4 +1,4 @@
-ARG PHP_VERSION=7.1
+ARG PHP_VERSION=7.4
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -46,40 +46,40 @@ RUN apt-get upgrade -y
 # ============================
 # UPDATE/UPGRADE APT PACKAGES
 # ============================
-RUN apt-get install -y \
+RUN apt-get install -y --no-install-recommends \
     build-essential \
     apt-utils \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
-    libmcrypt-dev \
     libpng-dev \
+    libmagickwand-dev \      
+    libmcrypt-dev \  
     libpq-dev \
-	zlib1g-dev libicu-dev g++ \
+    libzip-dev \
+    zlib1g-dev libicu-dev g++ \
     sqlite3 libsqlite3-dev \
     libxml2-dev \
+    libxslt1-dev \
     libssh2-1-dev \
     libssh2-1 \
-	libxslt-dev
+    libonig-dev \
+    gzip \
+    git \
+    cron \
+    lsof \
+    libxslt-dev
 
 
 # ================================================================================================================
 # Install additional packages (Note if you'd like to update TUGBOAT to include an additional package add below)
 # ================================================================================================================
-RUN apt-get install -y git vim cron htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python-certbot-apache
-
-
-# ============================
-# Install mcrypt
-# ============================
-RUN if [ "${PHP_VERSION}" = "7.2.13" ]; then printf "\n" | pecl install mcrypt-1.0.1; docker-php-ext-enable mcrypt; else docker-php-ext-install mcrypt ; fi
+RUN apt-get install --no-install-recommends -y vim htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python-certbot-apache
 
 
 # ============================
 # CONFIG PHP EXTENSIONS
 # ============================
 
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
-RUN docker-php-ext-install gd
 RUN docker-php-ext-install iconv
 RUN docker-php-ext-install mbstring
 RUN docker-php-ext-install mysqli
@@ -94,8 +94,16 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-4.2.0 \
-    && docker-php-ext-enable redis
+RUN pecl install redis-5.1.1 \
+    && docker-php-ext-enable redis   
+
+## Image Extensions
+RUN docker-php-ext-install exif
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install gd
+RUN pecl install imagick-3.4.4; \
+docker-php-ext-enable imagick;
+
 
 
 # ========================================================
@@ -116,7 +124,7 @@ RUN { \
 # ============================
 # PECL SSH2 library
 # ============================
-RUN pecl install ssh2-1.0
+RUN pecl install ssh2-1.2
 
 # ============================
 # Setup Composer
@@ -127,7 +135,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     mv composer.phar /usr/local/bin/composer
 
 # ============================
-# Create SSL Cert
+# Create SSL Cert Directory
 # ============================
 RUN mkdir /etc/apache2/ssl
 
@@ -151,11 +159,6 @@ RUN a2enmod expires
 # ============================
 RUN a2ensite default-ssl
 RUN a2ensite default
-
-# ==============================================================================
-# Remove Configuration for Javascript Common
-# ==============================================================================
-RUN a2disconf javascript-common
 
 # ==============================================================================
 # Start up Cron service
@@ -189,13 +192,10 @@ RUN apt-get install -y apt-transport-https
 RUN apt-get install -y gnupg
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install -y nodejs
 RUN apt-get install -y yarn
-RUN yarn global add browser-sync
-RUN yarn global add gulp gulp-yarn
-RUN yarn global add gulp-scss
-RUN yarn global add gulp-watch
+RUN yarn global add browser-sync gulp gulp-yarn gulp-scss gulp-watch
 
 
 # =======================================
@@ -205,10 +205,18 @@ ADD scripts/ /usr/local/bin/build-files
 RUN chmod +x /usr/local/bin/build-files/
 
 # =======================================
-# Add Files and Run Custom Scripts Script
+# Add Files and Run Certbot Scripts
 # =======================================
 ADD scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
 RUN chmod +x /usr/local/bin/tugboat-cert/certbot.sh
+
+# =======================================
+# Install WP-CLI
+# =======================================
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+ && chmod +x wp-cli.phar \
+ && mv wp-cli.phar /usr/local/bin/wp
+
 
 # ============================
 # Startup Script
