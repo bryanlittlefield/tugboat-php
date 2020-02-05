@@ -9,7 +9,7 @@ echo "  | |   | | | | | |  _  |  _ \  | | | |   / _ \     | |  "
 echo "  | |   | |_| | | |_| | | |_) | | |_| |  / ___ \    | |  "
 echo "  |_|    \___/   \____| |____/   \___/  /_/   \_\   |_|  "
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-echo "|   ****** Version $TUGBOAT_VERSION - Hank the Volcano ******     |"
+echo "|   ****** Version $TUGBOAT_VERSION - The Dispatcher ******     |"
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo ""
 echo ""
@@ -45,10 +45,10 @@ else
         echo "No Github credentials were passed. Check if the Directory is empty to pull in the welcome page.."
         if [ -n "$(ls -A $DOCUMENT_ROOT)" ]
             then
-                echo "Directory contains files or directories, Pull in the Welcome Page"
+                echo "Directory contains files or directories."
             else
-                echo "Directory Empty, Pull in the Welcome Page"
-                curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
+                echo "Directory Empty"
+                # curl -O http://165.227.28.53/introduction.txt && mv introduction.txt index.php
         fi
     fi
 fi
@@ -117,11 +117,11 @@ if [ $INCLUDE_HTPASSWD = true ]; then
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default.conf
-    if [ $WHITELIST_IP  ]; then
+    if [ -z $WHITELIST_IP  ]; then
+        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
+    else
         sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
         sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default.conf
-    else
-        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
     fi
 
     #SSL CONFIG
@@ -129,11 +129,11 @@ if [ $INCLUDE_HTPASSWD = true ]; then
     sed -i '17i\\t\tAuthName "Restricted Content"' /etc/apache2/sites-available/default-ssl.conf
     sed -i '18i\\t\tAuthUserFile /etc/apache2/.htpasswd' /etc/apache2/sites-available/default-ssl.conf
     sed -i '19i\\t\tRequire valid-user' /etc/apache2/sites-available/default-ssl.conf
-    if [ $WHITELIST_IP ]; then
+    if [ -z $WHITELIST_IP ]; then
+        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
+    else
         sed -i '20i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
         sed -i '21i\\t\tsatisfy any' /etc/apache2/sites-available/default-ssl.conf
-    else
-        sed -i '20i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
     fi
     echo "htpasswd setup successfully"
     echo ""
@@ -153,7 +153,16 @@ else
 
     #Check for IPs to Whitelist
     echo "Checking for Whitelist IP..."
-    if [ $WHITELIST_IP ]; then
+    if [ -z $WHITELIST_IP ]; then
+        echo "Whitelist IP Not Set In .env file..."
+        echo "----------------------------------------"
+        echo "!!Allow All Incoming Connections!!"
+        echo "----------------------------------------"
+        #Non-Secure
+        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
+        #Secure
+        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
+    else
         echo "Whitelist IP:${WHITELIST_IP} found..."
 
         echo "----------------------------------------"
@@ -163,15 +172,6 @@ else
         sed -i '16i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default.conf
         #Secure
         sed -i '16i\\t\tAllow from '${WHITELIST_IP} /etc/apache2/sites-available/default-ssl.conf
-    else
-        echo "Whitelist IP Not Set In .env file..."
-        echo "----------------------------------------"
-        echo "!!Allow All Incoming Connections!!"
-        echo "----------------------------------------"
-        #Non-Secure
-        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default.conf
-        #Secure
-        sed -i '16i\\t\tAllow from all' /etc/apache2/sites-available/default-ssl.conf
     fi
 fi
 echo "================================================"
@@ -206,9 +206,6 @@ echo "==========================================================="
 echo "STEP 6 of 9: Set Permissions"
 echo "==========================================================="
     mkdir -p $DOCUMENT_ROOT
-    chown -R www-data:www-data $DOCUMENT_ROOT
-    chmod go+x $DOCUMENT_ROOT
-    chmod -R g+rwx $DOCUMENT_ROOT
     if [ $SKIP_PERMISSIONS = true ]; then
         echo "Skipping Permissions Reset on Build.."
     else
@@ -277,13 +274,47 @@ if [ $SSL_CERT_TYPE = "CERTBOT" ]; then
     echo "-----------------------------------"
 
     cd /etc/ssl
-    echo "Run the following Command to Finish the Installation of your LetsEncrypt SSL SHA-2 Cert via CertBot " >> ssl-instructions.txt
-    echo "-----------------------------------" >> ssl-instructions.txt
-    echo "1) Log into Docker Host and run:" >> ssl-instructions.txt
-    echo "docker exec -it ${PROJECT_NAME}_web sh /usr/local/bin/tugboat-cert/certbot.sh && docker kill --signal='USR1' ${PROJECT_NAME}_web" >> ssl-instructions.txt
-    echo "" >> ssl-instructions.txt
-    echo "2) Confirm your CERT is ready by going to your following domain: $SERVER_NAME and confirming that it is secure" >> ssl-instructions.txt
-    echo "-----------------------------------" >> ssl-instructions.txt
+    echo "Run the following Command to Finish the Installation of your LetsEncrypt SSL SHA-2 Cert via CertBot " >> ssl-tugboat-instructions.txt
+    echo "-----------------------------------" >> ssl-tugboat-instructions.txt
+    echo "1) Log into Docker Host and run:" >> ssl-tugboat-instructions.txt
+    echo "docker exec -it ${PROJECT_NAME}_web sh /usr/local/bin/tugboat-cert/certbot.sh && docker kill --signal='USR1' ${PROJECT_NAME}_web" >> ssl-tugboat-instructions.txt
+    echo "" >> ssl-tugboat-instructions.txt
+    echo "2) Confirm your CERT is ready by going to your following domain: $SERVER_NAME and confirming that it is secure" >> ssl-tugboat-instructions.txt
+    echo "-----------------------------------" >> ssl-tugboat-instructions.txt
+fi
+echo ""
+echo ""
+
+###########################
+# XDEBUG
+###########################
+echo "==============================================================="
+echo "STEP 9 of 10: Install XDEBUG"
+echo "==============================================================="
+if [ $XDEBUG = "TRUE" ]; then
+    echo "XDEBUG Set to TRUE in .env file, Installing XDEBUG.."
+    pecl install xdebug
+    echo "Installation Complete.. Configuring XDEBUG"
+    XDEBUG_SO="$(command find '/usr/local/lib/php' -name 'xdebug.so' | command head -n 1)"
+    echo "" >> "${PHP_INI_DIR}/php.ini"
+    echo "" >> "${PHP_INI_DIR}/php.ini"
+    echo ";;;;;;;;;;;;;;;;;" >> "${PHP_INI_DIR}/php.ini"
+    echo "; xDebug ;" >> "${PHP_INI_DIR}/php.ini"
+    echo ";;;;;;;;;;;;;;;;;" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.remote_enable=1" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.default_enable=1" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.remote_autostart=1" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.remote_host=127.0.0.1" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.remote_port=9000" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.remote_handler=dbgp" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.remote_mode=req" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.var_display_max_children=256" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.var_display_max_data=1024" >> "${PHP_INI_DIR}/php.ini"
+    echo "xdebug.var_display_max_depth=5" >> "${PHP_INI_DIR}/php.ini"
+    echo "zend_extension=${XDEBUG_SO}" >> "${PHP_INI_DIR}/php.ini"
+    echo "XDEBUG Configured and Installed! Use Port 9000 to connect"
+else
+    echo "Skipping Installation of XDEBUG. YOu can turn this on by changing the XDEBUG env to TRUE in the .env file"
 fi
 echo ""
 echo ""
@@ -292,7 +323,7 @@ echo ""
 # Unset ENV Vars
 ###########################
 echo "==============================================================="
-echo "STEP 9 of 9: Unset ENV Vars that contian paswords for security"
+echo "STEP 10 of 10: Unset ENV Vars that contian paswords for security"
 echo "==============================================================="
 unset HTPASSWD_USER
 unset HTPASSWD_PASS
