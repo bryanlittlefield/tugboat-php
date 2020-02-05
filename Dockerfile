@@ -1,4 +1,4 @@
-ARG PHP_VERSION=7.3
+ARG PHP_VERSION=7.4
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -95,13 +95,11 @@ RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
 RUN pecl install redis-5.1.1 \
-    && docker-php-ext-enable redis
-RUN pecl install mcrypt-1.0.2 \
-    && docker-php-ext-enable mcrypt    
+    && docker-php-ext-enable redis   
 
 ## Image Extensions
 RUN docker-php-ext-install exif
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
 RUN pecl install imagick-3.4.4; \
 docker-php-ext-enable imagick;
