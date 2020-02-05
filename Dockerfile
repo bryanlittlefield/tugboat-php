@@ -1,4 +1,4 @@
-ARG PHP_VERSION=7.3
+ARG PHP_VERSION=7.2
 
 # ============================
 # PULL OFFICIAL PHP REPO
