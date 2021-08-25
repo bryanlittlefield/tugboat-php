@@ -1,4 +1,4 @@
-ARG PHP_VERSION=7.4
+ARG PHP_VERSION=8.0
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -124,7 +124,7 @@ RUN { \
 # ============================
 # PECL SSH2 library
 # ============================
-RUN pecl install ssh2-1.2
+RUN pecl install ssh2-1.3.1
 
 # ============================
 # Setup Composer
