@@ -1,4 +1,4 @@
-ARG PHP_VERSION=7.3
+ARG PHP_VERSION=7.4
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -73,7 +73,7 @@ RUN apt-get install -y --no-install-recommends \
 # ================================================================================================================
 # Install additional packages (Note if you'd like to update TUGBOAT to include an additional package add below)
 # ================================================================================================================
-RUN apt-get install --no-install-recommends -y vim htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python-certbot-apache
+RUN apt-get install --no-install-recommends -y vim htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript
 
 
 # ============================
@@ -94,16 +94,14 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-5.1.1 \
-    && docker-php-ext-enable redis
-RUN pecl install mcrypt-1.0.2 \
-    && docker-php-ext-enable mcrypt    
+RUN pecl install redis-5.3.4 \
+    && docker-php-ext-enable redis 
 
 ## Image Extensions
 RUN docker-php-ext-install exif
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
-RUN pecl install imagick-3.4.4; \
+RUN pecl install imagick-3.5.1; \
 docker-php-ext-enable imagick;
 
 
@@ -194,10 +192,10 @@ RUN apt-get install -y apt-transport-https
 RUN apt-get install -y gnupg
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs
 RUN apt-get install -y yarn
-RUN yarn global add browser-sync gulp gulp-yarn gulp-scss gulp-watch
+RUN yarn global add browser-sync gulp gulp-yarn gulp-scss gulp-watch webpack
 
 
 # =======================================
