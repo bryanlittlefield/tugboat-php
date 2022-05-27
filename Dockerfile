@@ -1,4 +1,4 @@
-ARG PHP_VERSION=8.0
+ARG PHP_VERSION=8.1
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -86,7 +86,7 @@ RUN docker-php-ext-install mysqli
 RUN docker-php-ext-install pgsql
 RUN docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite
 RUN docker-php-ext-install soap
-RUN docker-php-ext-install tokenizer
+# RUN docker-php-ext-install tokenizer This is now part of 8.1 .. errors if installed.
 RUN docker-php-ext-install zip
 RUN docker-php-ext-configure intl
 RUN docker-php-ext-install intl
