@@ -52,8 +52,8 @@ RUN apt-get install -y --no-install-recommends \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
-    libmagickwand-dev \      
-    libmcrypt-dev \  
+    libmagickwand-dev \
+    libmcrypt-dev \
     libpq-dev \
     libzip-dev \
     zlib1g-dev libicu-dev g++ \
@@ -73,7 +73,7 @@ RUN apt-get install -y --no-install-recommends \
 # ================================================================================================================
 # Install additional packages (Note if you'd like to update TUGBOAT to include an additional package add below)
 # ================================================================================================================
-RUN apt-get install --no-install-recommends -y vim htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript
+RUN apt-get install --no-install-recommends -y vim htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript systemctl less rsync
 
 
 # ============================
@@ -94,14 +94,14 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-5.3.4 \
-    && docker-php-ext-enable redis 
+RUN pecl install redis-5.3.7 \
+    && docker-php-ext-enable redis
 
 ## Image Extensions
 RUN docker-php-ext-install exif
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
-RUN pecl install imagick-3.5.1; \
+RUN pecl install imagick-3.7.0; \
 docker-php-ext-enable imagick;
 
 
@@ -190,12 +190,24 @@ RUN chsh -s /bin/zsh dev
 # =======================================
 RUN apt-get install -y apt-transport-https
 RUN apt-get install -y gnupg
+
+
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs
-RUN apt-get install -y yarn
+RUN apt-get update && apt-get install -y yarn
 RUN yarn global add browser-sync gulp gulp-yarn gulp-scss gulp-watch webpack
+
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+RUN apt-get install -y nodejs
+RUN npm install --global browser-sync gulp gulp-yarn gulp-scss gulp-watch webpack
+
+
+# =======================================
+# Install MongoDB v5.0.x
+# =======================================
+RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add - && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list ;
+RUN pecl install mongodb && docker-php-ext-enable mongodb;
+
 
 
 # =======================================
