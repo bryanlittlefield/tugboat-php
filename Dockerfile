@@ -185,7 +185,7 @@ RUN mkdir /opt/go && export GOPATH=/opt/go && go install github.com/mailhog/Mail
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
 RUN chsh -s /bin/zsh root
 RUN chsh -s /bin/zsh dev
-RUN curl -sS https://starship.rs/install.sh | sh
+RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
 
 # =======================================
@@ -219,7 +219,7 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | b
 RUN yarn global add postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp
 RUN npm install --global postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp
 
-
+# Install CLI NPM Tools
 RUN yarn global add tldr neoss gitmoji-cli
 
 
