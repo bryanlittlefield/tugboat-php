@@ -10,7 +10,7 @@ FROM php:${PHP_VERSION}-apache
 # ================================================
 ENV SERVER_NAME=localhost
 ENV DOCUMENT_ROOT=/var/www/html
-ENV DIRECTORY_PERMISSION=775
+ENV DIRECTORY_ PERMISSION=775
 ENV FILE_PERMISSION=664
 ENV SKIP_PERMISSIONS=false
 ENV MAX_EXECUTION_TIME=0
@@ -73,7 +73,7 @@ RUN apt-get install -y --no-install-recommends \
 # ================================================================================================================
 # Install additional packages (Note if you'd like to update TUGBOAT to include an additional package add below)
 # ================================================================================================================
-RUN apt-get install --no-install-recommends -y vim htop zip unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript systemctl less rsync
+RUN apt-get install --no-install-recommends -y vim htop zip sudo unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript systemctl less rsync make patch netbase iputils-ping jq bpytop neofetch strace dnsutils net-tools iproute2 nmap
 
 
 # ============================
@@ -86,23 +86,24 @@ RUN docker-php-ext-install mysqli
 RUN docker-php-ext-install pgsql
 RUN docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite
 RUN docker-php-ext-install soap
-RUN docker-php-ext-install tokenizer
+# RUN docker-php-ext-install tokenizer - Included in PHP 8.1
 RUN docker-php-ext-install zip
 RUN docker-php-ext-configure intl
 RUN docker-php-ext-install intl
 RUN docker-php-ext-install xsl
+# RUN docker-php-ext-install simplexml - Included in PHP 8.x
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-5.3.7 \
+RUN pecl install redis-6.0.1 \
     && docker-php-ext-enable redis
 
 ## Image Extensions
 RUN docker-php-ext-install exif
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
-RUN pecl install imagick-3.7.0; \
-docker-php-ext-enable imagick;
+# RUN pecl install imagick-3.7.0; \ - Note supported in PHP 8.3 as of now.
+# docker-php-ext-enable imagick;
 
 
 
@@ -124,7 +125,7 @@ RUN { \
 # ============================
 # PECL SSH2 library
 # ============================
-RUN pecl install ssh2-1.3.1
+RUN pecl install ssh2-1.4 && docker-php-ext-enable ssh2
 
 # ============================
 # Setup Composer
@@ -177,38 +178,71 @@ RUN service ssh start
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
 RUN mkdir /opt/go && export GOPATH=/opt/go && go get github.com/mailhog/mhsendmail
 
+
 # ==================================================
 # ZSH CONFIG - Sets it to the default login shell
 # ==================================================
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
 RUN chsh -s /bin/zsh root
 RUN chsh -s /bin/zsh dev
+RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
 
 # =======================================
 # Install NodeJS and Yarn
 # =======================================
 RUN apt-get install -y apt-transport-https
-RUN apt-get install -y gnupg
+RUN apt-get install -y ca-certificates gnupg
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+ENV NODE_MAJOR=20
+RUN echo $NODE_MAJOR
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+RUN apt-get update
+RUN apt-get install nodejs -y
 
+# Old YARN Install Method
+# RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+# RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+# RUN apt-get update && apt-get install -y yarn
+# RUN mv pubkey.gpg /etc/apt/trusted.gpg.d/yarn.gpg
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -y yarn
-RUN yarn global add browser-sync gulp gulp-yarn gulp-scss gulp-watch webpack
-
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-RUN apt-get install -y nodejs
-RUN npm install --global browser-sync gulp gulp-yarn gulp-scss gulp-watch webpack
+# Install Yarn
+RUN npm install --global yarn
+# Install NVM
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 
 
 # =======================================
-# Install MongoDB v5.0.x
+# Install Frontend Tooling
 # =======================================
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | apt-key add - && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | tee /etc/apt/sources.list.d/mongodb-org-5.0.list ;
+RUN yarn global add postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp
+RUN npm install --global postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp
+
+# Install CLI NPM Tools
+RUN yarn global add tldr neoss gitmoji-cli
+
+
+# =======================================
+# Install pyenv to manage Python versions
+# =======================================
+RUN curl https://pyenv.run | bash
+# Setup Bash Profile with pyenv
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+RUN echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+# Setup ZSH Profile with pyenv
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+RUN echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+
+
+# =======================================
+# Install MongoDB v7.0.x
+# =======================================
+RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && apt update
 RUN pecl install mongodb && docker-php-ext-enable mongodb;
-
-
 
 # =======================================
 # Add Files and Run Custom Scripts Script
