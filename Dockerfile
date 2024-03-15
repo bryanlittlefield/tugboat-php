@@ -1,4 +1,4 @@
-ARG PHP_VERSION=8.2
+ARG PHP_VERSION=8.3
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -95,7 +95,7 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-6.0.1 \
+RUN pecl install redis-stable \
     && docker-php-ext-enable redis
 
 ## Image Extensions
