@@ -95,13 +95,14 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-6.0.1 \
+RUN pecl install redis-stable \
     && docker-php-ext-enable redis
 
 ## Image Extensions
 RUN docker-php-ext-install exif
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
+RUN docker-php-ext-install simplexml
 RUN pecl install imagick-3.7.0; \
 docker-php-ext-enable imagick;
 
@@ -154,6 +155,7 @@ RUN a2enmod ssl
 RUN a2enmod proxy
 RUN a2enmod headers
 RUN a2enmod expires
+RUN a2enmod proxy_http
 
 # ============================
 # Enable Sites
@@ -210,14 +212,14 @@ RUN apt-get install nodejs -y
 # Install Yarn
 RUN npm install --global yarn
 # Install NVM
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
 
 # =======================================
 # Install Frontend Tooling
 # =======================================
-RUN yarn global add postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp
-RUN npm install --global postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp
+RUN yarn global add postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp pm2
+RUN npm install --global postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp pm2
 
 # Install CLI NPM Tools
 RUN yarn global add tldr neoss gitmoji-cli
