@@ -264,10 +264,13 @@ RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | gpg -o /usr/share/keyrin
     # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/pear && \
-    # Install WP-CLI
-    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    # Install WP-CLI with signature verification
+    curl -o /tmp/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    curl -o /tmp/wp-cli.phar.sha512 https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.sha512 && \
+    cd /tmp && sha512sum -c wp-cli.phar.sha512 && \
     chmod +x wp-cli.phar && \
-    mv wp-cli.phar /usr/local/bin/wp
+    mv wp-cli.phar /usr/local/bin/wp && \
+    rm wp-cli.phar.sha512
 
 # =======================================
 # Add Custom Scripts
