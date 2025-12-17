@@ -118,6 +118,8 @@ RUN apt-get update && apt-get upgrade -y && \
 # ============================
 # Combine PHP extension installations to reduce layers
 # Configure extensions that need it, then install all at once
+# Note: -j$(nproc) enables parallel compilation which speeds up builds
+# but may use significant memory on systems with many CPU cores
 RUN docker-php-ext-configure intl && \
     docker-php-ext-configure bcmath && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
@@ -282,10 +284,10 @@ RUN curl -fsSL https://pgp.mongodb.com/server-8.0.asc | gpg -o /usr/share/keyrin
 # Add Files and Scripts
 # =======================================
 # Combine script copying and permission setting
-ADD scripts/ /usr/local/bin/build-files
-ADD scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
-ADD scripts/start-mailpit-service.sh /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh
-ADD scripts/run.sh /usr/local/bin/run.sh
+COPY scripts/ /usr/local/bin/build-files
+COPY scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
+COPY scripts/start-mailpit-service.sh /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh
+COPY scripts/run.sh /usr/local/bin/run.sh
 
 RUN chmod +x /usr/local/bin/build-files/ && \
     chmod +x /usr/local/bin/tugboat-cert/certbot.sh && \
