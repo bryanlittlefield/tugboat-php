@@ -8,47 +8,41 @@ FROM php:${PHP_VERSION}-apache
 # ===============================================
 # ENVIRONMENT VARS
 # ================================================
-ENV SERVER_NAME=localhost
-ENV DOCUMENT_ROOT=/var/www/html
-ENV DIRECTORY_PERMISSION=775
-ENV FILE_PERMISSION=664
-ENV SKIP_PERMISSIONS=false
-ENV MAX_EXECUTION_TIME=0
-ENV MAX_INPUT_TIME=0
-ENV MAX_INPUT_VARS=1500
-ENV MEMORY_LIMIT=-1
-ENV POST_MAX_SIZE=0
-ENV UPLOAD_MAX_FILESIZE=2048M
-ENV DATE_TIMEZONE=America/Los_Angeles
-ENV WHITELIST_IP=
-
+ENV SERVER_NAME=localhost \
+    DOCUMENT_ROOT=/var/www/html \
+    DIRECTORY_PERMISSION=775 \
+    FILE_PERMISSION=664 \
+    SKIP_PERMISSIONS=false \
+    MAX_EXECUTION_TIME=0 \
+    MAX_INPUT_TIME=0 \
+    MAX_INPUT_VARS=1500 \
+    MEMORY_LIMIT=-1 \
+    POST_MAX_SIZE=0 \
+    UPLOAD_MAX_FILESIZE=2048M \
+    DATE_TIMEZONE=America/Los_Angeles \
+    WHITELIST_IP= \
+    NODE_MAJOR=20 \
+    DEBIAN_FRONTEND=noninteractive
 
 # ===============================================
 # FIX PERMISSIONS / ADD DEV USER / SET PASSWORDS
 # ================================================
-RUN usermod -u 1000 www-data
-RUN groupmod -g 1000 www-data
-RUN useradd dev -m
-RUN usermod -aG www-data dev
-RUN usermod -aG dev www-data
+RUN usermod -u 1000 www-data && \
+    groupmod -g 1000 www-data && \
+    useradd dev -m && \
+    usermod -aG www-data dev && \
+    usermod -aG dev www-data
 
 # ============================
-# ADD APT SOURCES
+# INSTALL SYSTEM PACKAGES
 # ============================
-# RUN echo "deb http://ftp.debian.org/debian stretch-backports main" | tee -a /etc/apt/sources.list
-
-# ============================
-# UPDATE/UPGRADE APT PACKAGES
-# ============================
-RUN apt-get update
-RUN apt-get upgrade -y
-
-# ============================
-# UPDATE/UPGRADE APT PACKAGES
-# ============================
-RUN apt-get install -y --no-install-recommends \
+# Combine apt-get update, upgrade, and install into single layer with cleanup
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    # Build dependencies
     build-essential \
     apt-utils \
+    # PHP extension dependencies
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
@@ -56,57 +50,97 @@ RUN apt-get install -y --no-install-recommends \
     libmcrypt-dev \
     libpq-dev \
     libzip-dev \
-    zlib1g-dev libicu-dev g++ \
-    sqlite3 libsqlite3-dev \
+    zlib1g-dev \
+    libicu-dev \
+    g++ \
+    sqlite3 \
+    libsqlite3-dev \
     libxml2-dev \
     libxslt1-dev \
     libssh2-1-dev \
     libssh2-1 \
     libonig-dev \
+    # Utilities and tools
     gzip \
     git \
     cron \
     lsof \
-    libxslt-dev
-
-
-# ================================================================================================================
-# Install additional packages (Note if you'd like to update TUGBOAT to include an additional package add below)
-# ================================================================================================================
-RUN apt-get install --no-install-recommends -y vim htop zip sudo unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript systemctl less rsync make patch netbase iputils-ping duf jq bpytop neofetch strace dnsutils net-tools iproute2 nmap
-
+    vim \
+    htop \
+    zip \
+    sudo \
+    unzip \
+    pwgen \
+    curl \
+    wget \
+    ruby \
+    rubygems \
+    ruby-dev \
+    screen \
+    openssl \
+    openssh-server \
+    supervisor \
+    nano \
+    ncdu \
+    zsh \
+    python3-certbot-apache \
+    openvpn \
+    ghostscript \
+    systemctl \
+    less \
+    rsync \
+    make \
+    patch \
+    netbase \
+    iputils-ping \
+    duf \
+    jq \
+    bpytop \
+    neofetch \
+    strace \
+    dnsutils \
+    net-tools \
+    iproute2 \
+    nmap \
+    # NodeJS dependencies
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    # Go for MailHog
+    golang-go && \
+    # Clean up apt cache to reduce image size
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # ============================
 # CONFIG PHP EXTENSIONS
 # ============================
-
-RUN docker-php-ext-install iconv
-RUN docker-php-ext-install mbstring
-RUN docker-php-ext-install mysqli
-RUN docker-php-ext-install pgsql
-RUN docker-php-ext-install pdo_mysql pdo_pgsql pdo_sqlite
-RUN docker-php-ext-install soap
-# RUN docker-php-ext-install tokenizer - Included in PHP 8.1
-RUN docker-php-ext-install zip
-RUN docker-php-ext-configure intl
-RUN docker-php-ext-install intl
-RUN docker-php-ext-install xsl
-# RUN docker-php-ext-install simplexml - Included in PHP 8.x
-RUN docker-php-ext-configure bcmath
-RUN docker-php-ext-install bcmath
-RUN docker-php-ext-install opcache
-RUN pecl install redis-6.0.1 \
-    && docker-php-ext-enable redis
-
-## Image Extensions
-RUN docker-php-ext-install exif
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install gd
-RUN docker-php-ext-install simplexml
-RUN pecl install imagick-3.7.0; \
-docker-php-ext-enable imagick;
-
-
+# Consolidate PHP extension installations to reduce layers
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-configure intl && \
+    docker-php-ext-configure bcmath && \
+    docker-php-ext-install -j$(nproc) \
+        iconv \
+        mbstring \
+        mysqli \
+        pgsql \
+        pdo_mysql \
+        pdo_pgsql \
+        pdo_sqlite \
+        soap \
+        zip \
+        intl \
+        xsl \
+        bcmath \
+        opcache \
+        exif \
+        gd \
+        simplexml && \
+    # Install PECL extensions
+    pecl install redis-6.0.1 imagick-3.7.0 ssh2-1.4 && \
+    docker-php-ext-enable redis imagick ssh2 && \
+    # Clean up
+    rm -rf /tmp/pear
 
 # ========================================================
 # Configure PHP OPcache (recommended for Magento/WP)
@@ -124,11 +158,6 @@ RUN { \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 # ============================
-# PECL SSH2 library
-# ============================
-RUN pecl install ssh2-1.4 && docker-php-ext-enable ssh2
-
-# ============================
 # Setup Composer
 # ============================
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
@@ -137,133 +166,115 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     mv composer.phar /usr/local/bin/composer
 
 # ============================
-# Create SSL Cert Directory
+# Create SSL Cert Directory & Configure Apache/PHP
 # ============================
-RUN mkdir /etc/apache2/ssl
+RUN mkdir /etc/apache2/ssl && \
+    rm /etc/apache2/sites-enabled/* && \
+    a2enmod rewrite ssl proxy headers expires proxy_http
 
-
-# ============================
-# Configure Apache/PHP
-# ============================
-RUN rm /etc/apache2/sites-enabled/*
 COPY config/apache/default.conf /etc/apache2/sites-available/default.conf
 COPY config/apache/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
 COPY config/php/php.ini /usr/local/etc/php/
 
-RUN a2enmod rewrite
-RUN a2enmod ssl
-RUN a2enmod proxy
-RUN a2enmod headers
-RUN a2enmod expires
-RUN a2enmod proxy_http
-
 # ============================
 # Enable Sites
 # ============================
-RUN a2ensite default-ssl
-RUN a2ensite default
+RUN a2ensite default-ssl default
 
 # ==============================================================================
-# Start up Cron service
+# CONFIG OPENSSH (don't start services during build)
 # ==============================================================================
-RUN service cron start
-
-# ============================
-# CONFIG OPENSSH / START SERVICE
-# ============================
 COPY config/ssh/sshd_config /etc/ssh/sshd_config
-RUN service ssh start
 
 # ============================
-# MHSendmail CONFIG
+# MHSendmail CONFIG (MailHog)
 # ============================
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
-RUN mkdir /opt/go && export GOPATH=/opt/go && go install github.com/mailhog/MailHog@latest
-
+RUN mkdir -p /opt/go && \
+    export GOPATH=/opt/go && \
+    go install github.com/mailhog/MailHog@latest && \
+    rm -rf /opt/go/pkg
 
 # ==================================================
 # ZSH CONFIG - Sets it to the default login shell
 # ==================================================
-RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
-RUN chsh -s /bin/zsh root
-RUN chsh -s /bin/zsh dev
-RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
-
+RUN wget -q https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true && \
+    chsh -s /bin/zsh root && \
+    chsh -s /bin/zsh dev && \
+    curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
 # =======================================
 # Install NodeJS and Yarn
 # =======================================
-RUN apt-get install -y apt-transport-https
-RUN apt-get install -y ca-certificates gnupg
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-ENV NODE_MAJOR=20
-RUN echo $NODE_MAJOR
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-RUN apt-get update
-RUN apt-get install nodejs -y
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install nodejs -y && \
+    npm install --global yarn && \
+    # Clean up apt cache
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Old YARN Install Method
-# RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-# RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-# RUN apt-get update && apt-get install -y yarn
-# RUN mv pubkey.gpg /etc/apt/trusted.gpg.d/yarn.gpg
+# =======================================
+# Install Frontend Tooling & CLI NPM Tools
+# =======================================
+# Use only npm (not both yarn and npm) to avoid duplication
+RUN npm install --global \
+    postcss-cli \
+    webpack \
+    webpack-cli \
+    laravel-mix \
+    browser-sync \
+    gulp \
+    gulp-cli \
+    gulp-yarn \
+    create-react-app \
+    node-gyp \
+    pm2 \
+    tldr \
+    neoss \
+    gitmoji-cli && \
+    # Clean npm cache
+    npm cache clean --force
 
-# Install Yarn
-RUN npm install --global yarn
 # Install NVM
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-
-
-# =======================================
-# Install Frontend Tooling
-# =======================================
-RUN yarn global add postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp pm2
-RUN npm install --global postcss-cli webpack webpack-cli laravel-mix browser-sync gulp gulp-cli gulp-yarn create-react-app node-gyp pm2
-
-# Install CLI NPM Tools
-RUN yarn global add tldr neoss gitmoji-cli
-
 
 # =======================================
 # Install pyenv to manage Python versions
 # =======================================
-RUN curl https://pyenv.run | bash
-# Setup Bash Profile with pyenv
-RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
-RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
-RUN echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
-# Setup ZSH Profile with pyenv
-RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
-RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
-RUN echo 'eval "$(pyenv init -)"' >> ~/.zshrc
-
-
-# =======================================
-# Install MongoDB v7.0.x
-# =======================================
-RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
-RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && apt update
-RUN pecl install mongodb && docker-php-ext-enable mongodb;
+RUN curl https://pyenv.run | bash && \
+    # Setup Bash Profile with pyenv
+    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile && \
+    echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bash_profile && \
+    # Setup ZSH Profile with pyenv
+    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc && \
+    echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.zshrc
 
 # =======================================
-# Add Files and Run Custom Scripts Script
+# Install MongoDB v7.0.x & WP-CLI
+# =======================================
+RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor && \
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && \
+    apt-get update && \
+    pecl install mongodb && \
+    docker-php-ext-enable mongodb && \
+    # Clean up
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/pear && \
+    # Install WP-CLI
+    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp
+
+# =======================================
+# Add Custom Scripts
 # =======================================
 ADD scripts/ /usr/local/bin/build-files
-RUN chmod +x /usr/local/bin/build-files/
-
-# =======================================
-# Add Files and Run Certbot Scripts
-# =======================================
 ADD scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
-RUN chmod +x /usr/local/bin/tugboat-cert/certbot.sh
-
-# =======================================
-# Install WP-CLI
-# =======================================
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
- && chmod +x wp-cli.phar \
- && mv wp-cli.phar /usr/local/bin/wp
+RUN chmod +x /usr/local/bin/build-files/ /usr/local/bin/tugboat-cert/certbot.sh
 
 
 # ============================
