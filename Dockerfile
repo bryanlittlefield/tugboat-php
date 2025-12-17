@@ -212,7 +212,6 @@ RUN mkdir -p /etc/apt/keyrings && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get install nodejs -y && \
-    npm install --global yarn && \
     # Clean up apt cache
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -220,8 +219,8 @@ RUN mkdir -p /etc/apt/keyrings && \
 # =======================================
 # Install Frontend Tooling & CLI NPM Tools
 # =======================================
-# Use only npm (not both yarn and npm) to avoid duplication
 RUN npm install --global \
+    yarn \
     postcss-cli \
     webpack \
     webpack-cli \
