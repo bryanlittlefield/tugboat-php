@@ -117,6 +117,7 @@ RUN apt-get update && apt-get upgrade -y && \
 # ============================
 # Consolidate PHP extension installations to reduce layers
 # Note: PECL versions pinned for stability (redis 6.0.1, imagick 3.7.0, ssh2 1.4)
+# PECL extensions installed sequentially as they don't support parallel compilation
 # Consider updating periodically: https://pecl.php.net/
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-configure intl && \
@@ -138,7 +139,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
         exif \
         gd \
         simplexml && \
-    # Install PECL extensions
+    # Install PECL extensions (sequential - no parallel support)
     pecl install redis-6.0.1 imagick-3.7.0 ssh2-1.4 && \
     docker-php-ext-enable redis imagick ssh2 && \
     # Clean up
@@ -257,7 +258,8 @@ RUN curl https://pyenv.run | bash && \
 # =======================================
 # Install MongoDB v7.0.x & WP-CLI
 # =======================================
-RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor && \
+RUN set -e && \
+    curl -fsSL https://pgp.mongodb.com/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor && \
     echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && \
     apt-get update && \
     pecl install mongodb && \
@@ -266,8 +268,8 @@ RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | gpg -o /usr/share/keyrin
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/pear && \
     # Install WP-CLI with signature verification
-    curl -o /tmp/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
-    curl -o /tmp/wp-cli.phar.sha512 https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.sha512 && \
+    curl -fsSL -o /tmp/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    curl -fsSL -o /tmp/wp-cli.phar.sha512 https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.sha512 && \
     cd /tmp && sha512sum -c wp-cli.phar.sha512 && \
     chmod +x wp-cli.phar && \
     mv wp-cli.phar /usr/local/bin/wp && \
