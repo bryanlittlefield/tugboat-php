@@ -116,6 +116,8 @@ RUN apt-get update && apt-get upgrade -y && \
 # CONFIG PHP EXTENSIONS
 # ============================
 # Consolidate PHP extension installations to reduce layers
+# Note: PECL versions pinned for stability (redis 6.0.1, imagick 3.7.0, ssh2 1.4)
+# Consider updating periodically: https://pecl.php.net/
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-configure intl && \
     docker-php-ext-configure bcmath && \

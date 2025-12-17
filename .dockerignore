@@ -4,9 +4,10 @@
 .gitattributes
 
 # Documentation
-README.md
 LICENSE
-*.md
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
 
 # CI/CD
 .github
