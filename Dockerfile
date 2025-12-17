@@ -95,7 +95,7 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-6.0.1 \
+RUN pecl install redis-6.3.0 \
     && docker-php-ext-enable redis
 
 ## Image Extensions
