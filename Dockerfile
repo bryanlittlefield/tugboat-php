@@ -43,9 +43,9 @@ RUN usermod -u 1000 www-data && \
 # ============================
 # Combine update, upgrade, and all package installations into a single layer
 # and clean up apt cache to reduce image size
+# Build dependencies for PHP extensions
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-    # Build dependencies for PHP extensions
     build-essential \
     apt-utils \
     libfreetype6-dev \
@@ -66,7 +66,6 @@ RUN apt-get update && apt-get upgrade -y && \
     libssh2-1 \
     libonig-dev \
     gzip \
-    # Development and system tools
     git \
     cron \
     lsof \
@@ -107,11 +106,9 @@ RUN apt-get update && apt-get upgrade -y && \
     net-tools \
     iproute2 \
     nmap \
-    # Node.js dependencies
     apt-transport-https \
     ca-certificates \
     gnupg && \
-    # Clean up apt cache to reduce image size
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -141,7 +138,6 @@ RUN docker-php-ext-configure intl && \
         exif \
         gd \
         simplexml && \
-    # Install PECL extensions
     pecl install redis-6.3.0 imagick-3.8.1 && \
     docker-php-ext-enable redis imagick
 
@@ -161,7 +157,6 @@ RUN { \
 		echo 'opcache.fast_shutdown=1'; \
 		echo 'opcache.enable_cli=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini && \
-    # Install PECL SSH2 library
     pecl install ssh2-1.4.1 && \
     docker-php-ext-enable ssh2
 
@@ -184,9 +179,7 @@ RUN mkdir /etc/apache2/ssl
 # ============================
 # Combine Apache configuration and module enablement into fewer layers
 RUN rm /etc/apache2/sites-enabled/* && \
-    # Enable Apache modules
     a2enmod rewrite ssl proxy headers expires proxy_http && \
-    # Enable sites
     a2ensite default-ssl default
 
 COPY config/apache/default.conf /etc/apache2/sites-available/default.conf
@@ -223,15 +216,14 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 # Install NodeJS, Yarn, and NVM
 # =======================================
 # Combine Node.js setup and installation
+ENV NODE_MAJOR=24
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get install nodejs -y && \
-    # Clean up apt cache
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    # Install Yarn and NVM
     npm install --global yarn && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
@@ -262,13 +254,11 @@ RUN npm install --global \
 # =======================================
 # Combine pyenv installation and configuration
 RUN curl https://pyenv.run | bash && \
-    # Setup Bash Profile with pyenv
     { \
         echo 'export PYENV_ROOT="$HOME/.pyenv"'; \
         echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"'; \
         echo 'eval "$(pyenv init -)"'; \
     } >> ~/.bash_profile && \
-    # Setup ZSH Profile with pyenv
     { \
         echo 'export PYENV_ROOT="$HOME/.pyenv"'; \
         echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"'; \
@@ -285,7 +275,6 @@ RUN curl -fsSL https://pgp.mongodb.com/server-8.0.asc | gpg -o /usr/share/keyrin
     apt-get update && \
     pecl install mongodb && \
     docker-php-ext-enable mongodb && \
-    # Clean up apt cache
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
