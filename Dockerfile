@@ -1,4 +1,4 @@
-ARG PHP_VERSION=8.2
+ARG PHP_VERSION=8.4
 
 # ============================
 # PULL OFFICIAL PHP REPO
@@ -73,7 +73,7 @@ RUN apt-get install -y --no-install-recommends \
 # ================================================================================================================
 # Install additional packages (Note if you'd like to update TUGBOAT to include an additional package add below)
 # ================================================================================================================
-RUN apt-get install --no-install-recommends -y vim htop zip sudo unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript systemctl less rsync make patch netbase iputils-ping duf jq bpytop neofetch strace dnsutils net-tools iproute2 nmap
+RUN apt-get install --no-install-recommends -y vim htop zip sudo unzip pwgen curl wget ruby rubygems ruby-dev screen openssl openssh-server supervisor nano ncdu zsh python3-certbot-apache openvpn ghostscript systemctl less rsync make patch netbase iputils-ping duf jq bpytop fastfetch strace dnsutils net-tools iproute2 nmap
 
 
 # ============================
@@ -95,7 +95,7 @@ RUN docker-php-ext-install xsl
 RUN docker-php-ext-configure bcmath
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install opcache
-RUN pecl install redis-6.0.1 \
+RUN pecl install redis-6.3.0 \
     && docker-php-ext-enable redis
 
 ## Image Extensions
@@ -103,7 +103,7 @@ RUN docker-php-ext-install exif
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
 RUN docker-php-ext-install simplexml
-RUN pecl install imagick-3.7.0; \
+RUN pecl install imagick-3.8.1; \
 docker-php-ext-enable imagick;
 
 
@@ -126,7 +126,7 @@ RUN { \
 # ============================
 # PECL SSH2 library
 # ============================
-RUN pecl install ssh2-1.4 && docker-php-ext-enable ssh2
+RUN pecl install ssh2-1.4.1 && docker-php-ext-enable ssh2
 
 # ============================
 # Setup Composer
@@ -197,7 +197,7 @@ RUN apt-get install -y apt-transport-https
 RUN apt-get install -y ca-certificates gnupg
 RUN mkdir -p /etc/apt/keyrings
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-ENV NODE_MAJOR=20
+ENV NODE_MAJOR=24
 RUN echo $NODE_MAJOR
 RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 RUN apt-get update
@@ -212,7 +212,7 @@ RUN apt-get install nodejs -y
 # Install Yarn
 RUN npm install --global yarn
 # Install NVM
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
 
 # =======================================
@@ -240,10 +240,10 @@ RUN echo 'eval "$(pyenv init -)"' >> ~/.zshrc
 
 
 # =======================================
-# Install MongoDB v7.0.x
+# Install MongoDB v8.0.x (LTS)
 # =======================================
-RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
-RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && apt update
+RUN curl -fsSL https://pgp.mongodb.com/server-8.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list && apt update
 RUN pecl install mongodb && docker-php-ext-enable mongodb;
 
 # =======================================
