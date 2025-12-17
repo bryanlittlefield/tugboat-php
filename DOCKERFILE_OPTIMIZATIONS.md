@@ -67,6 +67,8 @@ RUN apt-get update && apt-get upgrade -y && \
 ```dockerfile
 # Before: 16+ separate RUN commands
 # After: 1 combined RUN with parallel compilation
+# Note: -j$(nproc) enables parallel compilation which speeds up builds
+# but may use significant memory on systems with many CPU cores
 RUN docker-php-ext-configure intl && \
     docker-php-ext-configure bcmath && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
@@ -78,6 +80,7 @@ RUN docker-php-ext-configure intl && \
 - Uses `-j$(nproc)` for parallel compilation (faster builds on multi-core systems)
 - Single layer instead of 16+
 - PECL extensions grouped together
+- Note added about potential memory usage on high-core-count systems
 
 #### Apache Configuration (Lines 183-194):
 ```dockerfile
@@ -139,20 +142,23 @@ RUN curl -fsSL [mongo gpg key] && \
     rm -rf /var/lib/apt/lists/*
 ```
 
-#### Script Installation (Lines 293-311):
+#### Script Installation (Lines 283-295):
 ```dockerfile
 # Before: 8 separate ADD/RUN commands
-# After: 4 ADD commands, 1 RUN command for all chmod operations
-ADD scripts/ /usr/local/bin/build-files
-ADD scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
-ADD scripts/start-mailpit-service.sh /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh
-ADD scripts/run.sh /usr/local/bin/run.sh
+# After: 4 COPY commands, 1 RUN command for all chmod operations
+COPY scripts/ /usr/local/bin/build-files
+COPY scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
+COPY scripts/start-mailpit-service.sh /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh
+COPY scripts/run.sh /usr/local/bin/run.sh
 
 RUN chmod +x /usr/local/bin/build-files/ && \
     chmod +x /usr/local/bin/tugboat-cert/certbot.sh && \
     chmod +x /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh && \
     chmod +x /usr/local/bin/run.sh
 ```
+**Benefits:**
+- Changed from ADD to COPY (Docker best practice for local files)
+- All chmod operations in a single layer
 
 ### 6. Security & Best Practices
 
@@ -161,10 +167,16 @@ RUN chmod +x /usr/local/bin/build-files/ && \
 - **After:** Services now start in `run.sh` at runtime
 - **Reason:** Services shouldn't run during image build; they should start when container runs
 
+#### Used COPY instead of ADD:
+- **Before:** `ADD scripts/ /usr/local/bin/build-files`
+- **After:** `COPY scripts/ /usr/local/bin/build-files`
+- **Reason:** Docker best practices recommend COPY for local files as it's more transparent. ADD should be reserved for URLs and tar extraction.
+
 #### Fixed Issues:
 - Removed duplicate section header "UPDATE/UPGRADE APT PACKAGES"
 - Removed redundant `sudo` in MongoDB installation (already running as root)
 - Better documentation with inline comments
+- Fixed all inline comments that could cause shell parsing issues by moving them to separate lines
 
 ### 7. Build Performance Improvements
 
