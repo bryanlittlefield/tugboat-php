@@ -175,10 +175,13 @@ COPY config/ssh/sshd_config /etc/ssh/sshd_config
 RUN service ssh start
 
 # ============================
-# MHSendmail CONFIG
+# MailPit CONFIG
 # ============================
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
-RUN mkdir /opt/go && export GOPATH=/opt/go && go install github.com/mailhog/MailHog@latest
+# RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go
+# RUN mkdir /opt/go && export GOPATH=/opt/go && go install github.com/mailhog/MailHog@latest
+# Install MailPit 📧
+RUN curl -sSL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
+
 
 
 # ==================================================
@@ -257,6 +260,12 @@ RUN chmod +x /usr/local/bin/build-files/
 # =======================================
 ADD scripts/certbot.sh /usr/local/bin/tugboat-cert/certbot.sh
 RUN chmod +x /usr/local/bin/tugboat-cert/certbot.sh
+
+# =======================================
+# Add Files and Run MailPit Scripts
+# =======================================
+ADD scripts/start-mailpit-service.sh /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh
+RUN chmod +x /usr/local/bin/tugboat-mailpit/start-mailpit-service.sh
 
 # =======================================
 # Install WP-CLI
