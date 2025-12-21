@@ -92,10 +92,11 @@ echo ""
 #Starting up SSH
 ###########################
 echo "================================================"
-echo "STEP 3 of 9: Starting up the SSH Service        "
+echo "STEP 3 of 9: Starting up the SSH Service and CRON        "
 echo "================================================"
 service ssh start
 service ssh restart
+service cron start
 echo "================================================"
 echo ""
 echo ""
