@@ -6,7 +6,7 @@ This document outlines the performance and quality improvements made to the Tugb
 
 ### 1. Layer Reduction
 **Before:** 80+ layers  
-**After:** ~35 layers  
+**After:** ~24 layers (≈70% reduction)  
 **Benefit:** Faster builds, smaller image size, better cache utilization
 
 #### Changes:

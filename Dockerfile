@@ -155,7 +155,7 @@ RUN { \
 		echo 'opcache.interned_strings_buffer=8'; \
 		echo 'opcache.max_accelerated_files=40000'; \
 		echo 'opcache.revalidate_freq=0'; \
-        echo 'opcache.validate_timestamps=1'; \
+		echo 'opcache.validate_timestamps=1'; \
 		echo 'opcache.fast_shutdown=1'; \
 		echo 'opcache.enable_cli=1'; \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini && \
@@ -180,7 +180,7 @@ RUN mkdir /etc/apache2/ssl
 # Configure Apache/PHP
 # ============================
 # Combine Apache configuration and module enablement into fewer layers
-RUN rm /etc/apache2/sites-enabled/* 
+RUN rm /etc/apache2/sites-enabled/*
 
 COPY config/apache/default.conf /etc/apache2/sites-available/default.conf
 COPY config/apache/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
