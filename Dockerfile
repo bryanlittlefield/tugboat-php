@@ -180,13 +180,14 @@ RUN mkdir /etc/apache2/ssl
 # Configure Apache/PHP
 # ============================
 # Combine Apache configuration and module enablement into fewer layers
-RUN rm /etc/apache2/sites-enabled/* && \
-    a2enmod rewrite ssl proxy headers expires proxy_http && \
-    a2ensite default-ssl default
+RUN rm /etc/apache2/sites-enabled/* 
 
 COPY config/apache/default.conf /etc/apache2/sites-available/default.conf
 COPY config/apache/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
 COPY config/php/php.ini /usr/local/etc/php/
+
+RUN a2enmod rewrite ssl proxy headers expires proxy_http && \
+    a2ensite default-ssl default
 
 # ============================
 # CONFIG OPENSSH
@@ -201,7 +202,6 @@ COPY config/ssh/sshd_config /etc/ssh/sshd_config
 # RUN mkdir /opt/go && export GOPATH=/opt/go && go install github.com/mailhog/MailHog@latest
 # Install MailPit 📧
 RUN curl -sSL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
-
 
 
 # ==================================================
@@ -300,4 +300,8 @@ RUN chmod +x /usr/local/bin/build-files/ && \
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
     chmod +x wp-cli.phar && \
     mv wp-cli.phar /usr/local/bin/wp
+
+# =======================================
+# Docker Runner CMD
+# =======================================	
 CMD ["/usr/local/bin/run.sh"]
